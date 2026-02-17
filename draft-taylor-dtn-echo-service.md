@@ -229,7 +229,7 @@ Note: The IPN value 7 has been used by convention in existing implementations, m
 
 --- back
 
-# Ping Client Considerations
+# Ping Clients
 
 This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the echo service specification defines the reflector behavior, effective ping clients require careful attention to timing, session management, and payload design.
 
@@ -296,8 +296,3 @@ Example output format following ICMP ping conventions:
 5 bundles transmitted, 4 received, 20% loss
 rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
 ~~~
-
-# Acknowledgments
-{:numbered="false"}
-
-This document exists because Felix Flentge nudged me and said the infamous words: "You should write that up as an IETF draft, it could be useful".
