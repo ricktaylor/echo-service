@@ -9,20 +9,20 @@ number:
 date:
 consensus: true
 v: 3
-area: INT
-workgroup: Delay/Disruption Tolerant Networking
+area: "Internet"
+workgroup: "Delay/Disruption Tolerant Networking"
 keyword:
 - DTN
 - BPv7
 - Bundle Protocol
 - Echo
 venue:
-  group: Delay/Disruption Tolerant Networking
-  type: Working Group
-  mail: dtn@ietf.org
-  arch: https://mailarchive.ietf.org/arch/browse/dtn/
-  github: ricktaylor/echo-service
-  latest: https://ricktaylor.github.io/echo-service/draft-taylor-dtn-echo-service.html
+  group: "Delay/Disruption Tolerant Networking"
+  type: "Working Group"
+  mail: "dtn@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/dtn/"
+  github: "ricktaylor/echo-service"
+  latest: "https://ricktaylor.github.io/echo-service/draft-taylor-dtn-echo-service.html"
 
 author:
 - fullname: Rick Taylor
