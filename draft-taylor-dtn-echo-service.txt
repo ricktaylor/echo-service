@@ -94,12 +94,11 @@ Table of Contents
    6.  References
      6.1.  Normative References
      6.2.  Informative References
-   Appendix A.  Ping Client Considerations
+   Appendix A.  Ping Clients
      A.1.  Round-Trip Time Calculation
      A.2.  Endpoint Selection
      A.3.  Payload Format
      A.4.  Statistics
-   Acknowledgments
    Author's Address
 
 1.  Introduction
@@ -497,7 +496,7 @@ Table of Contents
               DOI 10.17487/RFC0862, May 1983,
               <https://www.rfc-editor.org/rfc/rfc862>.
 
-Appendix A.  Ping Client Considerations
+Appendix A.  Ping Clients
 
    This appendix provides non-normative guidance for implementing ping
    clients that use the echo service.  While the echo service
@@ -603,12 +602,6 @@ A.4.  Statistics
    --- ipn:2.128 ping statistics ---
    5 bundles transmitted, 4 received, 20% loss
    rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
-
-Acknowledgments
-
-   This document exists because Felix Flentge nudged me and said the
-   infamous words: "You should write that up as an IETF draft, it could
-   be useful".
 
 Author's Address
 
