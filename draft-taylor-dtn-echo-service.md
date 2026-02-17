@@ -19,35 +19,35 @@
 # Change the file extension to match the format (.xml for XML, etc...)
 #
 ###
-title: "TODO - Your title"
-abbrev: "TODO - Abbreviation"
-category: info
+title: BPv7 Echo service
+abbrev: BPEcho
+category: std
 
-docname: draft-todo-yourname-protocol-latest
+docname: draft-taylor-dtn-echo-service-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
 consensus: true
 v: 3
-area: AREA
-workgroup: WG Working Group
+area: INT
+workgroup: Delay/Disruption Tolerant Networking
 keyword:
- - next generation
- - unicorn
- - sparkling distributed ledger
+- DTN
+- BPv7
+- Bundle Protocol
+- Echo
 venue:
-  group: WG
+  group: Delay/Disruption Tolerant Networking
   type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  mail: dtn@ietf.org
+  arch: https://mailarchive.ietf.org/arch/browse/dtn/
+  github: ricktaylor/echo-service
+  latest: https://ricktaylor.github.io/echo-service/draft-taylor-dtn-echo-service.html
 
 author:
- -
-    fullname: Your Name Here
-    organization: Your Organization Here
-    email: your.email@example.com
+- fullname: Rick Taylor
+  organization: Aalyria Technologies
+  email: rtaylor@aalyria.com
 
 normative:
 
