@@ -1052,7 +1052,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Taylor</td>
-<td class="center">Expires 21 August 2026</td>
+<td class="center">Expires 22 August 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1065,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-taylor-dtn-echo-service-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-17" class="published">17 February 2026</time>
+<time datetime="2026-02-18" class="published">18 February 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-21">21 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-08-22">22 August 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1120,7 +1120,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 21 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1172,12 +1172,6 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
                     <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
-                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-status-reports" class="internal xref">Status Reports</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.5">
-                    <p id="section-toc.1-1.3.2.2.2.5.1"><a href="#section-3.2.5" class="auto internal xref">3.2.5</a>.  <a href="#name-security-blocks" class="internal xref">Security Blocks</a></p>
 </li>
                 </ul>
 </li>
@@ -1243,7 +1237,10 @@ svg :is([fill="white"], [fill^="#fff"]) {
                 <p id="section-toc.1-1.7.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-payload-format" class="internal xref">Payload Format</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
-                <p id="section-toc.1-1.7.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-statistics" class="internal xref">Statistics</a></p>
+                <p id="section-toc.1-1.7.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-interpreting-status-reports" class="internal xref">Interpreting Status Reports</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-statistics" class="internal xref">Statistics</a></p>
 </li>
             </ul>
 </li>
@@ -1343,7 +1340,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <dd class="break"></dd>
 <dt id="section-3.2.1-3.5">Bundle Processing Control Flags:</dt>
             <dd style="margin-left: 1.5em" id="section-3.2.1-3.6">
-              <p id="section-3.2.1-3.6.1">The echo service <span class="bcp14">MUST</span> preserve the bundle processing control flags unchanged.<a href="#section-3.2.1-3.6.1" class="pilcrow">¶</a></p>
+              <p id="section-3.2.1-3.6.1">The echo service <span class="bcp14">MUST</span> preserve the bundle processing control flags unchanged. Because these flags are preserved, any status report requests in the original bundle will also apply to the response bundle; see <a href="#status-reports" class="auto internal xref">Appendix A.4</a> for guidance on interpreting status reports in ping clients.<a href="#section-3.2.1-3.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.2.1-3.7">Report-to EID:</dt>
@@ -1370,14 +1367,13 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           </h4>
 <p id="section-3.2.3-1">The echo service preserves extension blocks in the cloned bundle, retaining each block's block type code, block processing control flags, CRC type, and block-type-specific data. Block numbers <span class="bcp14">SHOULD NOT</span> be changed, as other blocks (such as BPSec blocks) may reference them. CRCs <span class="bcp14">MUST</span> be recalculated for blocks whose content changes during BPA processing.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.2.3-2">Since the echo service submits the response bundle to the BPA for transmission, the BPA applies standard <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> extension block processing, updating blocks as appropriate for an outbound bundle.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-3">For unrecognized blocks, the BPA applies block processing control flags per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.4" class="relref">Section 4.2.4</a></span>, respecting the "Delete bundle if block can't be processed" flag (bit 2) and discarding unrecognized blocks that lack this flag.<a href="#section-3.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-4">The following subsections describe the expected behavior for commonly used extension blocks.<a href="#section-3.2.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-3">The following subsections describe the expected behavior for commonly used extension blocks.<a href="#section-3.2.3-3" class="pilcrow">¶</a></p>
 <div id="hop-count-block">
 <section id="section-3.2.3.1">
             <h5 id="name-hop-count-block">
 <a href="#section-3.2.3.1" class="section-number selfRef">3.2.3.1. </a><a href="#name-hop-count-block" class="section-name selfRef">Hop Count Block</a>
             </h5>
-<p id="section-3.2.3.1-1">If the received bundle contains a Hop Count Block (block type 10), the echo service preserves it in the response bundle. When the BPA processes the outbound response bundle, it increments the hop count as specified in <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. If the hop count exceeds the hop limit, the BPA will delete the bundle rather than forward it. Clients need to set hop limits with this additional increment in mind.<a href="#section-3.2.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3.1-1">If the received bundle contains a Hop Count Block (block type 10), the echo service preserves it in the response bundle; the BPA increments the hop count during normal processing. Clients should account for the additional hop at the echo service when setting hop limits.<a href="#section-3.2.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="previous-node-block">
@@ -1393,7 +1389,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <h5 id="name-bundle-age-block">
 <a href="#section-3.2.3.3" class="section-number selfRef">3.2.3.3. </a><a href="#name-bundle-age-block" class="section-name selfRef">Bundle Age Block</a>
             </h5>
-<p id="section-3.2.3.3-1">If the received bundle contains a Bundle Age Block (block type 7), the echo service <span class="bcp14">SHOULD</span> preserve it unchanged. The BPA updates the bundle age during normal forwarding processing.<a href="#section-3.2.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3.3-1">If the received bundle contains a Bundle Age Block (block type 7), the echo service <span class="bcp14">SHOULD</span> preserve it unchanged; the BPA updates the bundle age during normal processing.<a href="#section-3.2.3.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="other-extension-blocks">
@@ -1401,48 +1397,9 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <h5 id="name-other-extension-blocks">
 <a href="#section-3.2.3.4" class="section-number selfRef">3.2.3.4. </a><a href="#name-other-extension-blocks" class="section-name selfRef">Other Extension Blocks</a>
             </h5>
-<p id="section-3.2.3.4-1">For any other extension blocks, the echo service preserves them in the cloned bundle, and the BPA applies standard block processing.<a href="#section-3.2.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3.4-1">For any other extension blocks, including BPSec BIB and BCB blocks <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span>, the echo service preserves them in the cloned bundle and the BPA applies standard block processing.<a href="#section-3.2.3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-</section>
-</div>
-<div id="status-reports">
-<section id="section-3.2.4">
-          <h4 id="name-status-reports">
-<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-status-reports" class="section-name selfRef">Status Reports</a>
-          </h4>
-<p id="section-3.2.4-1">When the received bundle has status report request flags set, the echo service node generates multiple status reports for the bundle's journey:<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.2.4-2">
-<li id="section-3.2.4-2.1">
-              <p id="section-3.2.4-2.1.1"><strong>Received</strong>: Generated when the BPA receives the bundle at the echo service node<a href="#section-3.2.4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.2.4-2.2">
-              <p id="section-3.2.4-2.2.1"><strong>Delivered</strong>: Generated when the BPA delivers the bundle to the echo service<a href="#section-3.2.4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ol>
-<p id="section-3.2.4-3">These reports are sent to the report-to endpoint specified in the original bundle and describe the original bundle's arrival at its destination.<a href="#section-3.2.4-3" class="pilcrow">¶</a></p>
-<p id="section-3.2.4-4">The response bundle, having preserved the status report request flags, will generate its own separate status reports:<a href="#section-3.2.4-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.2.4-5">
-<li id="section-3.2.4-5.1">
-              <p id="section-3.2.4-5.1.1"><strong>Forwarded</strong>: Generated when the BPA forwards the response bundle from the echo service node<a href="#section-3.2.4-5.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.2.4-5.2">
-              <p id="section-3.2.4-5.2.1"><strong>Received</strong> and <strong>Forwarded</strong>: Generated at each intermediate node on the return path<a href="#section-3.2.4-5.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li id="section-3.2.4-5.3">
-              <p id="section-3.2.4-5.3.1"><strong>Delivered</strong>: Generated when the response bundle reaches the originating client<a href="#section-3.2.4-5.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ol>
-<p id="section-3.2.4-6">Since the response bundle also preserves the report-to endpoint (<a href="#primary-block" class="auto internal xref">Section 3.2.1</a>), these reports are sent to the same destination. Clients can distinguish original bundle reports from response bundle reports by examining the bundle identifier in each status report.<a href="#section-3.2.4-6" class="pilcrow">¶</a></p>
-<p id="section-3.2.4-7">Note: Status reporting is optional per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and many BPA implementations disable it by default. Clients cannot rely on receiving status reports for correct operation.<a href="#section-3.2.4-7" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="security-blocks">
-<section id="section-3.2.5">
-          <h4 id="name-security-blocks">
-<a href="#section-3.2.5" class="section-number selfRef">3.2.5. </a><a href="#name-security-blocks" class="section-name selfRef">Security Blocks</a>
-          </h4>
-<p id="section-3.2.5-1">BIB and BCB blocks as defined in <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> require no special handling; they are processed as extension blocks per <a href="#extension-blocks" class="auto internal xref">Section 3.2.3</a>.<a href="#section-3.2.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1743,34 +1700,53 @@ RTT = response_receive_time - request_sent_times[sequence_number]
 </div>
 </section>
 </div>
-<div id="statistics">
+<div id="status-reports">
 <section id="appendix-A.4">
-        <h3 id="name-statistics">
-<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-statistics" class="section-name selfRef">Statistics</a>
+        <h3 id="name-interpreting-status-reports">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-interpreting-status-reports" class="section-name selfRef">Interpreting Status Reports</a>
         </h3>
-<p id="appendix-A.4-1">Ping clients should track and report standard statistics consistent with traditional IP ping:<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-1">When status report request flags are set, the BPA generates status reports per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. Because the echo service preserves both the bundle processing control flags and the report-to EID, clients may receive status reports for both the original bundle and the reflected response.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">Clients can distinguish these reports by examining the bundle identifier (source EID and creation timestamp) in each status report:<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A.4-2.1">
-            <p id="appendix-A.4-2.1.1">Bundles transmitted<a href="#appendix-A.4-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-A.4-3.1">
+            <p id="appendix-A.4-3.1.1">Reports for the <strong>original bundle</strong> will have the client's endpoint as the source EID<a href="#appendix-A.4-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-2.2">
-            <p id="appendix-A.4-2.2.1">Responses received<a href="#appendix-A.4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.4-2.3">
-            <p id="appendix-A.4-2.3.1">Packet loss percentage<a href="#appendix-A.4-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.4-2.4">
-            <p id="appendix-A.4-2.4.1">RTT minimum, average, maximum, and standard deviation<a href="#appendix-A.4-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="appendix-A.4-3.2">
+            <p id="appendix-A.4-3.2.1">Reports for the <strong>response bundle</strong> will have the echo service endpoint as the source EID<a href="#appendix-A.4-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-A.4-3">These statistics provide a quick assessment of network health and help identify routing problems, congestion, or intermittent connectivity.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
-<p id="appendix-A.4-4">Example output format following ICMP ping conventions:<a href="#appendix-A.4-4" class="pilcrow">¶</a></p>
-<div class="lang-text sourcecode" id="appendix-A.4-5">
+<p id="appendix-A.4-4">This information can be useful for diagnosing where bundles are lost or delayed. For example, if a client receives a "Forwarded" report for the original bundle but no "Delivered" report, this suggests the bundle was lost between an intermediate node and the echo service.<a href="#appendix-A.4-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-5">Note that status reporting is optional per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and many BPA implementations disable it by default. Clients should not rely on receiving status reports for correct operation; they are a supplementary diagnostic tool when available.<a href="#appendix-A.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="statistics">
+<section id="appendix-A.5">
+        <h3 id="name-statistics">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-statistics" class="section-name selfRef">Statistics</a>
+        </h3>
+<p id="appendix-A.5-1">Ping clients should track and report standard statistics consistent with traditional IP ping:<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.5-2.1">
+            <p id="appendix-A.5-2.1.1">Bundles transmitted<a href="#appendix-A.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.5-2.2">
+            <p id="appendix-A.5-2.2.1">Responses received<a href="#appendix-A.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.5-2.3">
+            <p id="appendix-A.5-2.3.1">Packet loss percentage<a href="#appendix-A.5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.5-2.4">
+            <p id="appendix-A.5-2.4.1">RTT minimum, average, maximum, and standard deviation<a href="#appendix-A.5-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.5-3">These statistics provide a quick assessment of network health and help identify routing problems, congestion, or intermittent connectivity.<a href="#appendix-A.5-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.5-4">Example output format following ICMP ping conventions:<a href="#appendix-A.5-4" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="appendix-A.5-5">
 <pre>
 --- ipn:2.128 ping statistics ---
 5 bundles transmitted, 4 received, 20% loss
 rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
-</pre><a href="#appendix-A.4-5" class="pilcrow">¶</a>
+</pre><a href="#appendix-A.5-5" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
