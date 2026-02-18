@@ -100,7 +100,7 @@ Creation Timestamp and Lifetime:
 : The echo service MUST preserve the creation timestamp and lifetime unchanged. Preserving these fields allows the originating client to control the maximum round-trip time for the bundle.
 
 Bundle Processing Control Flags:
-: The echo service MUST preserve the bundle processing control flags unchanged.
+: The echo service MUST preserve the bundle processing control flags unchanged. Because these flags are preserved, any status report requests in the original bundle will also apply to the response bundle; see {{status-reports}} for guidance on interpreting status reports in ping clients.
 
 Report-to EID:
 : The echo service MUST preserve the report-to EID unchanged. If the original sender requested status reports, this ensures reports about the response bundle are delivered to the same endpoint.
@@ -117,13 +117,11 @@ The echo service preserves extension blocks in the cloned bundle, retaining each
 
 Since the echo service submits the response bundle to the BPA for transmission, the BPA applies standard {{!RFC9171}} extension block processing, updating blocks as appropriate for an outbound bundle.
 
-For unrecognized blocks, the BPA applies block processing control flags per {{!RFC9171, Section 4.2.4}}, respecting the "Delete bundle if block can't be processed" flag (bit 2) and discarding unrecognized blocks that lack this flag.
-
 The following subsections describe the expected behavior for commonly used extension blocks.
 
 #### Hop Count Block
 
-If the received bundle contains a Hop Count Block (block type 10), the echo service preserves it in the response bundle. When the BPA processes the outbound response bundle, it increments the hop count as specified in {{!RFC9171}}. If the hop count exceeds the hop limit, the BPA will delete the bundle rather than forward it. Clients need to set hop limits with this additional increment in mind.
+If the received bundle contains a Hop Count Block (block type 10), the echo service preserves it in the response bundle; the BPA increments the hop count during normal processing. Clients should account for the additional hop at the echo service when setting hop limits.
 
 #### Previous Node Block
 
@@ -131,34 +129,11 @@ If the received bundle contains a Previous Node Block (block type 6), the echo s
 
 #### Bundle Age Block
 
-If the received bundle contains a Bundle Age Block (block type 7), the echo service SHOULD preserve it unchanged. The BPA updates the bundle age during normal forwarding processing.
+If the received bundle contains a Bundle Age Block (block type 7), the echo service SHOULD preserve it unchanged; the BPA updates the bundle age during normal processing.
 
 #### Other Extension Blocks
 
-For any other extension blocks, the echo service preserves them in the cloned bundle, and the BPA applies standard block processing.
-
-### Status Reports
-
-When the received bundle has status report request flags set, the echo service node generates multiple status reports for the bundle's journey:
-
-1. **Received**: Generated when the BPA receives the bundle at the echo service node
-2. **Delivered**: Generated when the BPA delivers the bundle to the echo service
-
-These reports are sent to the report-to endpoint specified in the original bundle and describe the original bundle's arrival at its destination.
-
-The response bundle, having preserved the status report request flags, will generate its own separate status reports:
-
-1. **Forwarded**: Generated when the BPA forwards the response bundle from the echo service node
-2. **Received** and **Forwarded**: Generated at each intermediate node on the return path
-3. **Delivered**: Generated when the response bundle reaches the originating client
-
-Since the response bundle also preserves the report-to endpoint ({{primary-block}}), these reports are sent to the same destination. Clients can distinguish original bundle reports from response bundle reports by examining the bundle identifier in each status report.
-
-Note: Status reporting is optional per {{!RFC9171}} and many BPA implementations disable it by default. Clients cannot rely on receiving status reports for correct operation.
-
-### Security Blocks
-
-BIB and BCB blocks as defined in {{!RFC9172}} require no special handling; they are processed as extension blocks per {{extension-blocks}}.
+For any other extension blocks, including BPSec BIB and BCB blocks {{!RFC9172}}, the echo service preserves them in the cloned bundle and the BPA applies standard block processing.
 
 ## Client Considerations
 
@@ -277,6 +252,19 @@ The options map provides room for future extensions and may include:
 | 1 | Timestamp | DTN time ({{!RFC9171, Section 4.2.6}}), i.e., milliseconds since the DTN Epoch, for debugging purposes; while not used for RTT calculation (see {{rtt-calculation}}), this can help diagnose clock synchronization issues |
 | 2 | Extension Blocks | List of attached extension block types; enables clients to verify which extension blocks survive the round trip |
 {: #tab-options align="left" title="Suggested Payload Options"}
+
+## Interpreting Status Reports {#status-reports}
+
+When status report request flags are set, the BPA generates status reports per {{!RFC9171}}. Because the echo service preserves both the bundle processing control flags and the report-to EID, clients may receive status reports for both the original bundle and the reflected response.
+
+Clients can distinguish these reports by examining the bundle identifier (source EID and creation timestamp) in each status report:
+
+- Reports for the **original bundle** will have the client's endpoint as the source EID
+- Reports for the **response bundle** will have the echo service endpoint as the source EID
+
+This information can be useful for diagnosing where bundles are lost or delayed. For example, if a client receives a "Forwarded" report for the original bundle but no "Delivered" report, this suggests the bundle was lost between an intermediate node and the echo service.
+
+Note that status reporting is optional per {{!RFC9171}} and many BPA implementations disable it by default. Clients should not rely on receiving status reports for correct operation; they are a supplementary diagnostic tool when available.
 
 ## Statistics
 
