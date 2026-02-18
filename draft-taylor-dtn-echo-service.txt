@@ -206,7 +206,9 @@ Table of Contents
    Creation Timestamp and Lifetime:  The echo service MUST preserve the
       creation timestamp and lifetime unchanged.  Preserving these
       fields allows the originating client to control the maximum round-
-      trip time for the bundle.
+      trip time for the bundle, and match status reports generated on
+      the response path to the original bundle, see Appendix A.4 for
+      client implementation guidance.
 
    Bundle Processing Control Flags:  The echo service MUST preserve the
       bundle processing control flags unchanged.  Because these flags
