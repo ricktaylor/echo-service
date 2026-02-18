@@ -97,7 +97,7 @@ Source and Destination:
 : The echo service MUST set the destination to the received bundle's source, and MUST set the source to the echo service's endpoint (the received bundle's destination).
 
 Creation Timestamp and Lifetime:
-: The echo service MUST preserve the creation timestamp and lifetime unchanged. Preserving these fields allows the originating client to control the maximum round-trip time for the bundle.
+: The echo service MUST preserve the creation timestamp and lifetime unchanged. Preserving these fields allows the originating client to control the maximum round-trip time for the bundle, and match status reports generated on the response path to the original bundle, see {{status-reports}} for client implementation guidance.
 
 Bundle Processing Control Flags:
 : The echo service MUST preserve the bundle processing control flags unchanged. Because these flags are preserved, any status report requests in the original bundle will also apply to the response bundle; see {{status-reports}} for guidance on interpreting status reports in ping clients.
