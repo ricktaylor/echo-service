@@ -109,8 +109,24 @@ Lifetime:
 Report-To:
 : If the request bundle requested status reports, an echo service SHOULD set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request and response are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.
 
-Bundle Processing Control Flags:
-: An echo service sets the bundle processing control flags as appropriate for a bundle that it sources, rather than copying them from the request bundle. Status reports are a useful diagnostic, so to let an observer follow both legs of the exchange an echo service MAY request status reports on the response bundle, typically by mirroring the request bundle's status-report-request flags (see Report-To, above). An echo service MAY set the "bundle must not be fragmented" flag, for example when the request bundle had that flag set.
+### Bundle Processing Control Flags {#flags}
+
+An echo service does not copy the request bundle's control flags wholesale. The following per-flag requirements specify the response bundle's control flags; any flag not listed must not just be copied verbatim from the request bundle, but is set as for any bundle the node sources.
+
+"ADU is an administrative record":
+: MUST NOT be set. The response carries the reflected application payload, which is not an administrative record.
+
+"Bundle must not be fragmented":
+: MAY be copied from the request bundle.
+
+"Acknowledgement by application is requested":
+: MUST NOT be set. The response does not solicit an application acknowledgement.
+
+Status-report-request flags ("Request reporting of bundle reception", "Request reporting of bundle forwarding", "Request reporting of bundle delivery", and "Request reporting of bundle deletion"):
+: MAY be set, typically by mirroring the request bundle's flags, so that an observer can follow both legs of the exchange. These take effect together with the report-to EID (see the Report-To field above).
+
+"Status time requested in reports":
+: MAY be set, typically by mirroring the request bundle's value when the echo service mirrors the status-report-request flags, so that reports for the response carry the time of the reported event whenever the requester asked for that detail.
 
 ### Payload Block
 
