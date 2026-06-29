@@ -1170,10 +1170,13 @@ svg {
                     <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-primary-block" class="internal xref">Primary Block</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
-                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-payload-block" class="internal xref">Payload Block</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-bundle-processing-control-f" class="internal xref">Bundle Processing Control Flags</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
-                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-payload-block" class="internal xref">Payload Block</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.5">
+                    <p id="section-toc.1-1.3.2.2.2.5.1"><a href="#section-3.2.5" class="auto internal xref">3.2.5</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
 </li>
                 </ul>
 </li>
@@ -1355,31 +1358,61 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
             <dd style="margin-left: 1.5em" id="section-3.2.2-2.10">
               <p id="section-3.2.2-2.10.1">If the request bundle requested status reports, an echo service <span class="bcp14">SHOULD</span> set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request and response are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.<a href="#section-3.2.2-2.10.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="flags">
+<section id="section-3.2.3">
+          <h4 id="name-bundle-processing-control-f">
+<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-bundle-processing-control-f" class="section-name selfRef">Bundle Processing Control Flags</a>
+          </h4>
+<p id="section-3.2.3-1">An echo service does not copy the request bundle's control flags wholesale. The following per-flag requirements specify the response bundle's control flags; any flag not listed must not just be copied verbatim from the request bundle, but is set as for any bundle the node sources.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.2.3-2">
+            <dt id="section-3.2.3-2.1">"ADU is an administrative record":</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.3-2.2">
+              <p id="section-3.2.3-2.2.1"><span class="bcp14">MUST NOT</span> be set. The response carries the reflected application payload, which is not an administrative record.<a href="#section-3.2.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
             <dd class="break"></dd>
-<dt id="section-3.2.2-2.11">Bundle Processing Control Flags:</dt>
-            <dd style="margin-left: 1.5em" id="section-3.2.2-2.12">
-              <p id="section-3.2.2-2.12.1">An echo service sets the bundle processing control flags as appropriate for a bundle that it sources, rather than copying them from the request bundle. Status reports are a useful diagnostic, so to let an observer follow both legs of the exchange an echo service <span class="bcp14">MAY</span> request status reports on the response bundle, typically by mirroring the request bundle's status-report-request flags (see Report-To, above). An echo service <span class="bcp14">MAY</span> set the "bundle must not be fragmented" flag, for example when the request bundle had that flag set.<a href="#section-3.2.2-2.12.1" class="pilcrow">¶</a></p>
+<dt id="section-3.2.3-2.3">"Bundle must not be fragmented":</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.3-2.4">
+              <p id="section-3.2.3-2.4.1"><span class="bcp14">MAY</span> be copied from the request bundle.<a href="#section-3.2.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.3-2.5">"Acknowledgement by application is requested":</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.3-2.6">
+              <p id="section-3.2.3-2.6.1"><span class="bcp14">MUST NOT</span> be set. The response does not solicit an application acknowledgement.<a href="#section-3.2.3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.3-2.7">Status-report-request flags ("Request reporting of bundle reception", "Request reporting of bundle forwarding", "Request reporting of bundle delivery", and "Request reporting of bundle deletion"):</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.3-2.8">
+              <p id="section-3.2.3-2.8.1"><span class="bcp14">MAY</span> be set, typically by mirroring the request bundle's flags, so that an observer can follow both legs of the exchange. These take effect together with the report-to EID (see the Report-To field above).<a href="#section-3.2.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.3-2.9">"Status time requested in reports":</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.3-2.10">
+              <p id="section-3.2.3-2.10.1"><span class="bcp14">MAY</span> be set, typically by mirroring the request bundle's value when the echo service mirrors the status-report-request flags, so that reports for the response carry the time of the reported event whenever the requester asked for that detail.<a href="#section-3.2.3-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="payload-block">
-<section id="section-3.2.3">
+<section id="section-3.2.4">
           <h4 id="name-payload-block">
-<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-payload-block" class="section-name selfRef">Payload Block</a>
+<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-payload-block" class="section-name selfRef">Payload Block</a>
           </h4>
-<p id="section-3.2.3-1">The response bundle <span class="bcp14">MUST</span> contain a payload block whose content is identical, byte for byte, to the payload block content of the request bundle. An echo service <span class="bcp14">MUST NOT</span> alter, truncate, reorder, or append to the payload. This reflected payload is the only content guaranteed to survive the round trip; it allows a client to verify round-trip integrity by comparing the returned payload with what it sent.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-1">The response bundle <span class="bcp14">MUST</span> contain a payload block whose content is identical, byte for byte, to the payload block content of the request bundle. An echo service <span class="bcp14">MUST NOT</span> alter, truncate, reorder, or append to the payload. This reflected payload is the only content guaranteed to survive the round trip; it allows a client to verify round-trip integrity by comparing the returned payload with what it sent.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="extension-blocks">
-<section id="section-3.2.4">
+<section id="section-3.2.5">
           <h4 id="name-extension-blocks">
-<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-extension-blocks" class="section-name selfRef">Extension Blocks</a>
+<a href="#section-3.2.5" class="section-number selfRef">3.2.5. </a><a href="#name-extension-blocks" class="section-name selfRef">Extension Blocks</a>
           </h4>
-<p id="section-3.2.4-1">An echo service is not obliged to reproduce any extension block from the request bundle in the response bundle.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.4-2">An echo service <span class="bcp14">MAY</span> include extension blocks in the response bundle — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> block — as determined by the normal outbound bundle processing and local security policy of its node.<a href="#section-3.2.4-2" class="pilcrow">¶</a></p>
-<p id="section-3.2.4-3">An echo service that copies an extension block from the request bundle into the response remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request is generally not meaningful.<a href="#section-3.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.5-1">An echo service is not obliged to reproduce any extension block from the request bundle in the response bundle.<a href="#section-3.2.5-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.5-2">An echo service <span class="bcp14">MAY</span> include extension blocks in the response bundle — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> block — as determined by the normal outbound bundle processing and local security policy of its node.<a href="#section-3.2.5-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.5-3">An echo service that copies an extension block from the request bundle into the response remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request is generally not meaningful.<a href="#section-3.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1403,7 +1436,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-response-authenticity">
 <a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-response-authenticity" class="section-name selfRef">Response Authenticity</a>
           </h4>
-<p id="section-3.3.2-1">A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request to authenticate the response, because the request's BIB is not carried into the response (see <a href="#extension-blocks" class="auto internal xref">Section 3.2.4</a>). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because the echo service returns the payload unchanged, a client can detect modified or spoofed responses by validating the returned payload against state it retained locally when sending the request; see <a href="#payload-format" class="auto internal xref">Appendix A.3</a>.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-1">A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request to authenticate the response, because the request's BIB is not carried into the response (see <a href="#extension-blocks" class="auto internal xref">Section 3.2.5</a>). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because the echo service returns the payload unchanged, a client can detect modified or spoofed responses by validating the returned payload against state it retained locally when sending the request; see <a href="#payload-format" class="auto internal xref">Appendix A.3</a>.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fragmentation">
