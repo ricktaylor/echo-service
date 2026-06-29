@@ -7,27 +7,28 @@
 <title>BPv7 Echo Service</title>
 <meta content="Rick Taylor" name="author">
 <meta content="
-       This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. The echo service receives bundles at a well-known endpoint and reflects them back to the originator, making only the minimal changes necessary to route the response. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number and DTN demux for the echo service. 
+       This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. An echo service receives bundles at a well-known endpoint and replies to each with a response bundle that returns the payload to the originator. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number for the echo service. 
     " name="description">
-<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="DTN" name="keyword">
 <meta content="BPv7" name="keyword">
 <meta content="Bundle Protocol" name="keyword">
 <meta content="Echo" name="keyword">
 <meta content="draft-taylor-dtn-echo-service-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.31.0
-    Python 3.12.12
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.5.1
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
-    requests 2.32.5
-    wcwidth 0.3.0
+    requests 2.33.1
+    wcwidth 0.8.1
 -->
 <link href="draft-taylor-dtn-echo-service.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -294,16 +295,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -323,10 +327,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -337,59 +341,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -427,26 +431,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -462,20 +465,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -511,9 +516,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -523,17 +528,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -583,25 +590,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -621,13 +620,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -638,18 +630,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -708,9 +698,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -800,23 +790,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -827,19 +821,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -860,54 +856,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -926,26 +922,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -961,12 +957,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1028,17 +1025,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1048,11 +1047,11 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">BPEcho</td>
-<td class="right">February 2026</td>
+<td class="right">June 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Taylor</td>
-<td class="center">Expires 22 August 2026</td>
+<td class="center">Expires 31 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1064,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-taylor-dtn-echo-service-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-02-18" class="published">18 February 2026</time>
+<time datetime="2026-06-29" class="published">29 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-08-22">22 August 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-31">31 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1083,7 +1082,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">BPv7 Echo Service</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. The echo service receives bundles at a well-known endpoint and reflects them back to the originator, making only the minimal changes necessary to route the response. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number and DTN demux for the echo service.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. An echo service receives bundles at a well-known endpoint and replies to each with a response bundle that returns the payload to the originator. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number for the echo service.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1120,7 +1119,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 31 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1162,16 +1161,19 @@ svg :is([fill="white"], [fill^="#fff"]) {
                 <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-service-endpoint" class="internal xref">Service Endpoint</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
-                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-bundle-processing" class="internal xref">Bundle Processing</a></p>
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-the-response-bundle" class="internal xref">The Response Bundle</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.1">
-                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-primary-block" class="internal xref">Primary Block</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.1.1"><a href="#section-3.2.1" class="auto internal xref">3.2.1</a>.  <a href="#name-when-a-response-is-sent" class="internal xref">When a Response Is Sent</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.2">
-                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-payload-block" class="internal xref">Payload Block</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.2.1"><a href="#section-3.2.2" class="auto internal xref">3.2.2</a>.  <a href="#name-primary-block" class="internal xref">Primary Block</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.3">
-                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
+                    <p id="section-toc.1-1.3.2.2.2.3.1"><a href="#section-3.2.3" class="auto internal xref">3.2.3</a>.  <a href="#name-payload-block" class="internal xref">Payload Block</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2.2.4">
+                    <p id="section-toc.1-1.3.2.2.2.4.1"><a href="#section-3.2.4" class="auto internal xref">3.2.4</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
 </li>
                 </ul>
 </li>
@@ -1182,7 +1184,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
                     <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-session-disambiguation" class="internal xref">Session Disambiguation</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
-                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-bundle-integrity" class="internal xref">Bundle Integrity</a></p>
+                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-response-authenticity" class="internal xref">Response Authenticity</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.3">
                     <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-fragmentation" class="internal xref">Fragmentation</a></p>
@@ -1195,7 +1197,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-amplification-attacks" class="internal xref">Amplification Attacks</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-reflection-and-amplificatio" class="internal xref">Reflection and Amplification</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
                 <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-information-disclosure" class="internal xref">Information Disclosure</a></p>
@@ -1257,9 +1259,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
 <p id="section-1-1">Delay-Tolerant Networks (DTNs) present unique challenges for network diagnostics. Unlike traditional IP networks where ICMP Echo (ping) provides immediate feedback, DTN bundles might traverse store-and-forward paths with significant delays. Nevertheless, the ability to verify end-to-end connectivity and measure round-trip time remains essential for network operators.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">This document specifies an echo service for Bundle Protocol Version 7 <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. The service operates as a simple reflector: it receives bundles addressed to its well-known endpoint and returns them to the originator, making only the minimal changes necessary to route the response.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Conceptually, the echo service acts as a loopback within the node. Upon receiving a bundle, it clones the bundle and swaps source and destination endpoint identifiers, then submits this response bundle to the local BPA for transmission. The BPA processes the response bundle as it would any outbound bundle, applying standard extension block handling, routing, and forwarding. This design means the echo service itself performs minimal processing, delegating most bundle handling to the BPA.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">The echo service is intentionally simple: it performs only bundle reflection with no payload interpretation or special processing. This simplicity ensures maximum interoperability, as any conformant echo service will behave identically regardless of implementation. A standardized echo service enables the development of diagnostic tools such as ping clients that can operate across heterogeneous DTN deployments.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document specifies an echo service for Bundle Protocol Version 7 <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. An echo service receives bundles at a well-known endpoint and replies to each with a single response bundle that returns the payload to the originator.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document specifies the externally observable content of the response bundle as a set of conformance rules; it does not constrain how an implementation produces that bundle. An implementation may construct a new bundle, or may derive the response from the request internally, provided the response conforms to the rules in <a href="#response-bundle" class="auto internal xref">Section 3.2</a>. Because the response is an ordinary bundle, the node's Bundle Protocol Agent (BPA) handles its routing, extension-block processing, and forwarding as it would for any other bundle the node sources.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">The echo service is intentionally simple: it interprets no payload and performs no special processing beyond returning the payload to its originator. Defining the response as a wire contract rather than an internal mechanism lets independent implementations interoperate regardless of whether the echo service is built into the BPA or runs as an ordinary application. A standardized echo service enables diagnostic tools such as ping clients to operate across heterogeneous DTN deployments.<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-terminology">
@@ -1275,12 +1277,17 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-2-3">
         <dt id="section-2-3.1">Echo Service:</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.2">
-          <p id="section-2-3.2.1">A Bundle Protocol service that reflects received bundles back to their originator.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.2.1">A Bundle Protocol service that returns the payload of each received bundle to its originator in a response bundle.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-3.3">Reflection:</dt>
+<dt id="section-2-3.3">Request Bundle:</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.4">
-          <p id="section-2-3.4.1">The process of creating a response bundle by swapping source and destination, preserving all other bundle content to the extent possible. The echo service makes only the minimum changes necessary to route the bundle back to the originator.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.4.1">A bundle received by an echo service at one of its echo service endpoints.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Response Bundle:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">The bundle an echo service sends in reply to a request bundle; <a href="#response-bundle" class="auto internal xref">Section 3.2</a> defines its content.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1296,110 +1303,83 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-service-endpoint">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-service-endpoint" class="section-name selfRef">Service Endpoint</a>
         </h3>
-<p id="section-3.1-1">An echo service <span class="bcp14">MUST</span> register to receive bundles at a well-known endpoint identifier. Two endpoint schemes are defined:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.1-2">
-          <dt id="section-3.1-2.1">IPN Scheme:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-2.2">
-            <p id="section-3.1-2.2.1">Service number 128 on any node. For example, <code>ipn:2.128</code> represents the echo service on node number 2. Implementations <span class="bcp14">MAY</span> also support service number 7 for backwards compatibility with existing deployments; service number 7 is in the Private Use range per <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and cannot be reserved.<a href="#section-3.1-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-2.3">DTN Scheme:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-2.4">
-            <p id="section-3.1-2.4.1">The demux <code>echo</code> on any node. For example, <code>dtn://example.dtn/echo</code> represents the echo service on the node with node-name <code>example.dtn</code>.<a href="#section-3.1-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-3.1-3">An implementation <span class="bcp14">MAY</span> support additional endpoints beyond these well-known values, but <span class="bcp14">MUST</span> support at least one of the well-known endpoints defined above.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-1">An echo service registers to receive bundles at one or more endpoint identifiers. The well-known endpoint is IPN-scheme service number 128 on any node; for example, <code>ipn:2.128</code> represents the echo service on node number 2. Implementations <span class="bcp14">MAY</span> also support service number 7 for backwards compatibility with existing deployments; service number 7 is in the Private Use range per <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and cannot be reserved.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">An echo service <span class="bcp14">SHOULD</span> support the well-known endpoint, so that clients can reach it without out-of-band configuration. It <span class="bcp14">MAY</span> also support private or alternative endpoints, which clients must learn of by other means.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="bundle-processing">
+<div id="response-bundle">
 <section id="section-3.2">
-        <h3 id="name-bundle-processing">
-<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-bundle-processing" class="section-name selfRef">Bundle Processing</a>
+        <h3 id="name-the-response-bundle">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-the-response-bundle" class="section-name selfRef">The Response Bundle</a>
         </h3>
-<p id="section-3.2-1">The echo service operates conceptually as a loopback: upon receiving a bundle, it clones the bundle with source and destination swapped, then submits the response bundle to the local BPA for transmission. The BPA then processes the response bundle as it would any outbound bundle, applying standard extension block handling, routing, and forwarding.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2-2">This model means the echo service itself performs minimal processing - it modifies the primary block and preserves the payload, then delegates all other bundle processing to the BPA. The block-specific behavior described below reflects this division of responsibility.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
-<p id="section-3.2-3">The echo service <span class="bcp14">MUST NOT</span> generate bundles other than reflections of received bundles. Other services at the node <span class="bcp14">SHOULD NOT</span> generate bundles using the echo service endpoint as source.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<div id="primary-block">
+<p id="section-3.2-1">Upon receiving a bundle at one of its echo service endpoints (the "request bundle"), an echo service generates a response as specified in this section. When a response is sent (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.2.1</a>), the echo service <span class="bcp14">MUST</span> submit to its BPA, for transmission, exactly one bundle (the "response bundle") conforming to these rules, and <span class="bcp14">MUST NOT</span> emit more than one response bundle per request bundle.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">These rules constrain only the content of the response bundle, not the mechanism by which it is produced: an implementation <span class="bcp14">MAY</span> construct a new bundle or <span class="bcp14">MAY</span> derive the response from the request internally, provided the emitted response bundle conforms. Aside from the constraints in this section, the response bundle is an ordinary bundle, constructed and processed under <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> (and, where security is applied, <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span>) like any other bundle the node sources; this document does not restate those rules.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<div id="when-a-response-is-sent">
 <section id="section-3.2.1">
-          <h4 id="name-primary-block">
-<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-primary-block" class="section-name selfRef">Primary Block</a>
+          <h4 id="name-when-a-response-is-sent">
+<a href="#section-3.2.1" class="section-number selfRef">3.2.1. </a><a href="#name-when-a-response-is-sent" class="section-name selfRef">When a Response Is Sent</a>
           </h4>
-<p id="section-3.2.1-1">The echo service modifies the primary block to route the response back to the originator. Since the primary block is modified, its CRC <span class="bcp14">MUST</span> be recalculated before transmission. The CRC type <span class="bcp14">MUST NOT</span> be changed.<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.1-2">The following specifies the handling of each primary block field:<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.2.1-3">
-            <dt id="section-3.2.1-3.1">Source and Destination:</dt>
-            <dd style="margin-left: 1.5em" id="section-3.2.1-3.2">
-              <p id="section-3.2.1-3.2.1">The echo service <span class="bcp14">MUST</span> set the destination to the received bundle's source, and <span class="bcp14">MUST</span> set the source to the echo service's endpoint (the received bundle's destination).<a href="#section-3.2.1-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-1">An echo service <span class="bcp14">MUST NOT</span> generate a response bundle when the source node ID of the request bundle is the null endpoint ID, as no return path exists (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.3" class="relref">Section 4.2.3</a></span>).<a href="#section-3.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-2">An echo service <span class="bcp14">MUST NOT</span> generate a response bundle when the request bundle's payload is an administrative record (the "ADU is an administrative record" flag is set), to avoid reflecting status reports and the bundle loops that could result.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.1-3">An echo service <span class="bcp14">MUST NOT</span> generate bundles other than response bundles. Other services at the node <span class="bcp14">SHOULD NOT</span> use an echo service endpoint as the source of bundles they originate.<a href="#section-3.2.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="primary-block">
+<section id="section-3.2.2">
+          <h4 id="name-primary-block">
+<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-primary-block" class="section-name selfRef">Primary Block</a>
+          </h4>
+<p id="section-3.2.2-1">The primary block of the response bundle <span class="bcp14">MUST</span> be set as follows.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.2.2-2">
+            <dt id="section-3.2.2-2.1">Destination:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.2">
+              <p id="section-3.2.2-2.2.1"><span class="bcp14">MUST</span> be set to the source node ID of the request bundle.<a href="#section-3.2.2-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.2.1-3.3">Creation Timestamp and Lifetime:</dt>
-            <dd style="margin-left: 1.5em" id="section-3.2.1-3.4">
-              <p id="section-3.2.1-3.4.1">The echo service <span class="bcp14">MUST</span> preserve the creation timestamp and lifetime unchanged. Preserving these fields allows the originating client to control the maximum round-trip time for the bundle, and match status reports generated on the response path to the original bundle, see <a href="#status-reports" class="auto internal xref">Appendix A.4</a> for client implementation guidance.<a href="#section-3.2.1-3.4.1" class="pilcrow">¶</a></p>
+<dt id="section-3.2.2-2.3">Source:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.4">
+              <p id="section-3.2.2-2.4.1"><span class="bcp14">MUST</span> be set to the echo service endpoint ID at which the request bundle was received. Where a node exposes more than one such endpoint (for example, both an <code>ipn</code> and a <code>dtn</code> endpoint), the source <span class="bcp14">MUST</span> be the specific endpoint to which the request bundle was addressed.<a href="#section-3.2.2-2.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.2.1-3.5">Bundle Processing Control Flags:</dt>
-            <dd style="margin-left: 1.5em" id="section-3.2.1-3.6">
-              <p id="section-3.2.1-3.6.1">The echo service <span class="bcp14">MUST</span> preserve the bundle processing control flags unchanged. Because these flags are preserved, any status report requests in the original bundle will also apply to the response bundle; see <a href="#status-reports" class="auto internal xref">Appendix A.4</a> for guidance on interpreting status reports in ping clients.<a href="#section-3.2.1-3.6.1" class="pilcrow">¶</a></p>
+<dt id="section-3.2.2-2.5">Creation Timestamp:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.6">
+              <p id="section-3.2.2-2.6.1">An echo service <span class="bcp14">MUST NOT</span> reuse the request bundle's creation timestamp; the response bundle is assigned its own, as for any bundle the node sources.<a href="#section-3.2.2-2.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.2.1-3.7">Report-to EID:</dt>
-            <dd style="margin-left: 1.5em" id="section-3.2.1-3.8">
-              <p id="section-3.2.1-3.8.1">The echo service <span class="bcp14">MUST</span> preserve the report-to EID unchanged. If the original sender requested status reports, this ensures reports about the response bundle are delivered to the same endpoint.<a href="#section-3.2.1-3.8.1" class="pilcrow">¶</a></p>
+<dt id="section-3.2.2-2.7">Lifetime:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.8">
+              <p id="section-3.2.2-2.8.1">The response bundle <span class="bcp14">SHOULD</span> be assigned a lifetime that gives it a reasonable opportunity to reach the originator. Like any bundle the node sources, it is subject to the node's local lifetime policy, which bounds the retention cost of responses even when a request asserts a very long lifetime. Within that bound, an echo service <span class="bcp14">MAY</span> set the response lifetime by reusing the request bundle's lifetime value, or by deriving it from the request bundle's observed transit time (its age on reception). A lifetime derived from observed transit time limits retention, but can underestimate the requirement of a return path slower than the forward path, and so benefits from a generous margin.<a href="#section-3.2.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.2-2.9">Report-To:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.10">
+              <p id="section-3.2.2-2.10.1">If the request bundle requested status reports, an echo service <span class="bcp14">SHOULD</span> set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request and response are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.<a href="#section-3.2.2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.2-2.11">Bundle Processing Control Flags:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.2-2.12">
+              <p id="section-3.2.2-2.12.1">An echo service sets the bundle processing control flags as appropriate for a bundle that it sources, rather than copying them from the request bundle. Status reports are a useful diagnostic, so to let an observer follow both legs of the exchange an echo service <span class="bcp14">MAY</span> request status reports on the response bundle, typically by mirroring the request bundle's status-report-request flags (see Report-To, above). An echo service <span class="bcp14">MAY</span> set the "bundle must not be fragmented" flag, for example when the request bundle had that flag set.<a href="#section-3.2.2-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-3.2.1-4">Note: When the creation timestamp is preserved, a theoretical collision is possible if two bundles from different originators arrive with identical creation timestamps. Both reflections would have the same source and creation timestamp, making them indistinguishable. This is extremely rare in practice and represents an acceptable trade-off; diagnostic tools that use the echo service are typically designed to tolerate occasional packet loss.<a href="#section-3.2.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="payload-block">
-<section id="section-3.2.2">
+<section id="section-3.2.3">
           <h4 id="name-payload-block">
-<a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-payload-block" class="section-name selfRef">Payload Block</a>
+<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-payload-block" class="section-name selfRef">Payload Block</a>
           </h4>
-<p id="section-3.2.2-1">The payload block is central to the echo service's purpose: it carries the data that the client expects to receive back unchanged. The echo service <span class="bcp14">MUST</span> preserve the payload block exactly as received. This preservation allows clients to verify round-trip integrity by comparing the reflected payload against what was originally sent.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.3-1">The response bundle <span class="bcp14">MUST</span> contain a payload block whose content is identical, byte for byte, to the payload block content of the request bundle. An echo service <span class="bcp14">MUST NOT</span> alter, truncate, reorder, or append to the payload. This reflected payload is the only content guaranteed to survive the round trip; it allows a client to verify round-trip integrity by comparing the returned payload with what it sent.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="extension-blocks">
-<section id="section-3.2.3">
+<section id="section-3.2.4">
           <h4 id="name-extension-blocks">
-<a href="#section-3.2.3" class="section-number selfRef">3.2.3. </a><a href="#name-extension-blocks" class="section-name selfRef">Extension Blocks</a>
+<a href="#section-3.2.4" class="section-number selfRef">3.2.4. </a><a href="#name-extension-blocks" class="section-name selfRef">Extension Blocks</a>
           </h4>
-<p id="section-3.2.3-1">The echo service preserves extension blocks in the cloned bundle, retaining each block's block type code, block processing control flags, CRC type, and block-type-specific data. Block numbers <span class="bcp14">SHOULD NOT</span> be changed, as other blocks (such as BPSec blocks) may reference them. CRCs <span class="bcp14">MUST</span> be recalculated for blocks whose content changes during BPA processing.<a href="#section-3.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-2">Since the echo service submits the response bundle to the BPA for transmission, the BPA applies standard <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> extension block processing, updating blocks as appropriate for an outbound bundle.<a href="#section-3.2.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.2.3-3">The following subsections describe the expected behavior for commonly used extension blocks.<a href="#section-3.2.3-3" class="pilcrow">¶</a></p>
-<div id="hop-count-block">
-<section id="section-3.2.3.1">
-            <h5 id="name-hop-count-block">
-<a href="#section-3.2.3.1" class="section-number selfRef">3.2.3.1. </a><a href="#name-hop-count-block" class="section-name selfRef">Hop Count Block</a>
-            </h5>
-<p id="section-3.2.3.1-1">If the received bundle contains a Hop Count Block (block type 10), the echo service preserves it in the response bundle; the BPA increments the hop count during normal processing. Clients should account for the additional hop at the echo service when setting hop limits.<a href="#section-3.2.3.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="previous-node-block">
-<section id="section-3.2.3.2">
-            <h5 id="name-previous-node-block">
-<a href="#section-3.2.3.2" class="section-number selfRef">3.2.3.2. </a><a href="#name-previous-node-block" class="section-name selfRef">Previous Node Block</a>
-            </h5>
-<p id="section-3.2.3.2-1">If the received bundle contains a Previous Node Block (block type 6), the echo service preserves it; the BPA updates it during normal forwarding processing.<a href="#section-3.2.3.2-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="bundle-age-block">
-<section id="section-3.2.3.3">
-            <h5 id="name-bundle-age-block">
-<a href="#section-3.2.3.3" class="section-number selfRef">3.2.3.3. </a><a href="#name-bundle-age-block" class="section-name selfRef">Bundle Age Block</a>
-            </h5>
-<p id="section-3.2.3.3-1">If the received bundle contains a Bundle Age Block (block type 7), the echo service <span class="bcp14">SHOULD</span> preserve it unchanged; the BPA updates the bundle age during normal processing.<a href="#section-3.2.3.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="other-extension-blocks">
-<section id="section-3.2.3.4">
-            <h5 id="name-other-extension-blocks">
-<a href="#section-3.2.3.4" class="section-number selfRef">3.2.3.4. </a><a href="#name-other-extension-blocks" class="section-name selfRef">Other Extension Blocks</a>
-            </h5>
-<p id="section-3.2.3.4-1">For any other extension blocks, including BPSec BIB and BCB blocks <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span>, the echo service preserves them in the cloned bundle and the BPA applies standard block processing.<a href="#section-3.2.3.4-1" class="pilcrow">¶</a></p>
-</section>
-</div>
+<p id="section-3.2.4-1">An echo service is not obliged to reproduce any extension block from the request bundle in the response bundle.<a href="#section-3.2.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-2">An echo service <span class="bcp14">MAY</span> include extension blocks in the response bundle — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> block — as determined by the normal outbound bundle processing and local security policy of its node.<a href="#section-3.2.4-2" class="pilcrow">¶</a></p>
+<p id="section-3.2.4-3">An echo service that copies an extension block from the request bundle into the response remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request is generally not meaningful.<a href="#section-3.2.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1409,7 +1389,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-client-considerations">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-client-considerations" class="section-name selfRef">Client Considerations</a>
         </h3>
-<p id="section-3.3-1">While the echo service specification focuses primarily on the reflector, certain requirements apply to clients to ensure correct operation. This section defines those normative requirements.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">While this specification focuses primarily on the echo service, certain requirements apply to clients to ensure correct operation. This section defines those normative requirements.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <div id="session-disambiguation">
 <section id="section-3.3.1">
           <h4 id="name-session-disambiguation">
@@ -1418,13 +1398,12 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-3.3.1-1">When multiple clients run concurrently on the same node, each session must be distinguishable so that responses are delivered to the correct client. Multiple concurrent clients on the same node <span class="bcp14">MUST</span> use distinct source endpoint identifiers. Per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>, each application instance registers with a unique endpoint ID, and the combination of source and destination provides session disambiguation at the bundle layer without requiring any session identifier in the payload.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="bundle-integrity">
+<div id="response-authenticity">
 <section id="section-3.3.2">
-          <h4 id="name-bundle-integrity">
-<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-bundle-integrity" class="section-name selfRef">Bundle Integrity</a>
+          <h4 id="name-response-authenticity">
+<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-response-authenticity" class="section-name selfRef">Response Authenticity</a>
           </h4>
-<p id="section-3.3.2-1">Clients that wish to sign bundles for integrity verification must account for the fact that the echo service modifies the primary block during reflection. If a client signs bundles with a BIB whose Integrity-Protected Plaintext (IPPT) includes the primary block (integrity scope flags bit 0 set per <span>[<a href="#RFC9173" class="cite xref">RFC9173</a>]</span>), the signature will be computed over the original primary block contents. When the echo service swaps the source and destination, the primary block changes, and verification of such a BIB will fail.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-2">To ensure that integrity verification succeeds on the reflected bundle, clients that sign bundles <span class="bcp14">SHOULD</span> clear the "include primary block" flag (bit 0) in their integrity scope flags. With this flag cleared, the BIB signature covers only the payload and optionally the security headers, all of which remain unchanged through reflection.<a href="#section-3.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.2-1">A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request to authenticate the response, because the request's BIB is not carried into the response (see <a href="#extension-blocks" class="auto internal xref">Section 3.2.4</a>). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because the echo service returns the payload unchanged, a client can detect modified or spoofed responses by validating the returned payload against state it retained locally when sending the request; see <a href="#payload-format" class="auto internal xref">Appendix A.3</a>.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="fragmentation">
@@ -1432,7 +1411,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <h4 id="name-fragmentation">
 <a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-fragmentation" class="section-name selfRef">Fragmentation</a>
           </h4>
-<p id="section-3.3.3-1">Diagnostic clients <span class="bcp14">SHOULD</span> set the "bundle must not be fragmented" flag in bundles sent to the echo service. Fragmentation complicates round-trip time measurement and payload verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the bundle either traverses the network intact or is dropped, providing cleaner diagnostic results.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.3-1">Diagnostic clients <span class="bcp14">MAY</span> set the "bundle must not be fragmented" flag in bundles sent to the echo service. Fragmentation complicates round-trip time measurement and payload verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the bundle either traverses the network intact or is dropped, providing cleaner diagnostic results.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3.3-2">If a client needs to test path MTU, it can send bundles of increasing size with fragmentation disabled and observe which sizes succeed. This approach directly reveals the path's maximum bundle size rather than relying on fragmentation behavior.<a href="#section-3.3.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1446,24 +1425,25 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-4-1">This section discusses security issues relevant to the echo service and potential mitigations.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<div id="amplification-attacks">
+<div id="reflection-and-amplification">
 <section id="section-4.1">
-        <h3 id="name-amplification-attacks">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-amplification-attacks" class="section-name selfRef">Amplification Attacks</a>
+        <h3 id="name-reflection-and-amplificatio">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-reflection-and-amplificatio" class="section-name selfRef">Reflection and Amplification</a>
         </h3>
-<p id="section-4.1-1">Like any echo or reflection service, the Bundle Protocol echo service could potentially be used for amplification attacks if the response bundle is larger than the request. This might occur if the echo service adds extension blocks to the response. To mitigate this risk, implementations <span class="bcp14">SHOULD</span>:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">Like any echo or reflection service, an echo service can be abused to direct traffic at a victim. Because the source of a bundle is not authenticated by default, an attacker can send request bundles whose source is set to a victim's endpoint, causing the echo service to send response bundles to that victim. The echo service thereby launders the attacker's traffic and conceals its origin.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The volume amplification factor is close to one: an echo service returns the payload unchanged, and the requirement to emit at most one response bundle per request bundle (see <a href="#response-bundle" class="auto internal xref">Section 3.2</a>) prevents count amplification. The principal risk is therefore reflection toward, and concentration of traffic on, a chosen victim rather than bandwidth amplification. To mitigate this risk, implementations <span class="bcp14">SHOULD</span>:<a href="#section-4.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.1-2.1">
-            <p id="section-4.1-2.1.1">Rate-limit echo responses, particularly from previously unseen source endpoints<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-4.1-3.1">
+            <p id="section-4.1-3.1.1">Rate-limit response bundles, particularly to or from previously unseen endpoints<a href="#section-4.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-2.2">
-            <p id="section-4.1-2.2.1">Monitor for unusual traffic patterns that might indicate abuse<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-4.1-3.2">
+            <p id="section-4.1-3.2.1">Monitor for unusual traffic patterns that might indicate abuse<a href="#section-4.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-2.3">
-            <p id="section-4.1-2.3.1">Consider requiring authentication via Bundle Protocol Security <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> in sensitive deployments<a href="#section-4.1-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-4.1-3.3">
+            <p id="section-4.1-3.3.1">Consider requiring authentication via Bundle Protocol Security <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> in sensitive deployments<a href="#section-4.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.1-3">In practice, the amplification potential is limited because the echo service preserves the payload unchanged and is expected to make minimal modifications to the bundle. Any amplification would come only from small differences in bundle overhead.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">An echo service that propagates the request bundle's report-to EID and status report requests onto the response (see <a href="#response-bundle" class="auto internal xref">Section 3.2</a>) extends this reflection surface to the status reports generated for the response; the same mitigations apply.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="information-disclosure">
@@ -1491,7 +1471,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-resource-exhaustion">
 <a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-resource-exhaustion" class="section-name selfRef">Resource Exhaustion</a>
         </h3>
-<p id="section-4.3-1">An attacker could attempt to exhaust echo service resources by sending a large volume of bundles or bundles with very large payloads. Since the echo service must clone and retransmit each received bundle, this creates both memory and bandwidth pressure. Implementations <span class="bcp14">SHOULD</span>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-1">An attacker could attempt to exhaust echo service resources by sending a large volume of bundles or bundles with very large payloads. Since the echo service must construct and transmit a response bundle for each request, this creates both memory and bandwidth pressure. Implementations <span class="bcp14">SHOULD</span>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.3-2.1">
             <p id="section-4.3-2.1.1">Limit the maximum payload size accepted for reflection<a href="#section-4.3-2.1.1" class="pilcrow">¶</a></p>
@@ -1517,7 +1497,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <h3 id="name-well-known-service-registra">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-well-known-service-registra" class="section-name selfRef">Well-Known Service Registration</a>
         </h3>
-<p id="section-5.1-1">This document requests IANA to extend the "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry established by <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> to include a "DTN Demux" column, and to register the following entry:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-1">This document requests IANA to register the following entry in the "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry established by <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <span id="name-echo-service-registration"></span><div id="iana-echo-service">
 <table class="left" id="table-1">
           <caption>
@@ -1527,7 +1507,6 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Value</th>
-              <th class="text-left" rowspan="1" colspan="1">DTN Demux</th>
               <th class="text-left" rowspan="1" colspan="1">Description</th>
               <th class="text-left" rowspan="1" colspan="1">Reference</th>
             </tr>
@@ -1535,17 +1514,14 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
           <tbody>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">128</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>echo</code>
-</td>
               <td class="text-left" rowspan="1" colspan="1">Echo Service</td>
               <td class="text-left" rowspan="1" colspan="1">(this document)</td>
             </tr>
           </tbody>
         </table>
 </div>
-<p id="section-5.1-3">The IPN service number and DTN demux together define a well-known Bundle Protocol service. For the IPN scheme, the service number is appended to the node number (e.g., <code>ipn:2.128</code>). For the DTN scheme, the demux is appended to the node-name to form the demux component of the URI (e.g., <code>dtn://example.dtn/echo</code>).<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4">Note: The IPN value 7 has been used by convention in existing implementations, mirroring the well-known UDP port for the Echo Protocol <span>[<a href="#RFC862" class="cite xref">RFC862</a>]</span>. However, service numbers 1-127 are designated Private Use per <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>. This document requests service number 128, the lowest value in the Standards Action range. Implementations <span class="bcp14">MAY</span> continue to support service number 7 for backwards compatibility.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">For the IPN scheme, the service number is appended to the node number; for example, <code>ipn:2.128</code> is the echo service on node number 2.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">Note: Existing implementations do not agree on a service number for echo. Several use 7 by convention, mirroring the well-known UDP port for the Echo Protocol <span>[<a href="#RFC862" class="cite xref">RFC862</a>]</span>, while others use different values (for example, 2047). All of these lie within ranges designated Private Use by <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and so cannot be reserved. This document requests service number 128, the lowest value in the Standards Action range, to provide a single registered value. Implementations <span class="bcp14">MAY</span> continue to support service number 7, or other values, for backwards compatibility.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1577,10 +1553,6 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <dd>
 <span class="refAuthor">Birrane, III, E.</span> and <span class="refAuthor">K. McKeever</span>, <span class="refTitle">"Bundle Protocol Security (BPSec)"</span>, <span class="seriesInfo">RFC 9172</span>, <span class="seriesInfo">DOI 10.17487/RFC9172</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9172">https://www.rfc-editor.org/rfc/rfc9172</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC9173">[RFC9173]</dt>
-        <dd>
-<span class="refAuthor">Birrane, III, E.</span>, <span class="refAuthor">White, A.</span>, and <span class="refAuthor">S. Heiner</span>, <span class="refTitle">"Default Security Contexts for Bundle Protocol Security (BPSec)"</span>, <span class="seriesInfo">RFC 9173</span>, <span class="seriesInfo">DOI 10.17487/RFC9173</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9173">https://www.rfc-editor.org/rfc/rfc9173</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC9758">[RFC9758]</dt>
       <dd>
 <span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
@@ -1608,7 +1580,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-ping-clients">
 <a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-ping-clients" class="section-name selfRef">Ping Clients</a>
       </h2>
-<p id="appendix-A-1">This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the echo service specification defines the reflector behavior, effective ping clients require careful attention to timing, session management, and payload design.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the body of this document defines the echo service behaviour, effective ping clients require careful attention to timing, session management, and payload design.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <div id="rtt-calculation">
 <section id="appendix-A.1">
         <h3 id="name-round-trip-time-calculation">
@@ -1641,7 +1613,8 @@ RTT = response_receive_time - request_sent_times[sequence_number]
 <a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-endpoint-selection" class="section-name selfRef">Endpoint Selection</a>
         </h3>
 <p id="appendix-A.2-1">As required by <a href="#session-disambiguation" class="auto internal xref">Section 3.3.1</a>, multiple concurrent clients on the same node use distinct source endpoint identifiers.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.2-2">For example, if two concurrent ping sessions on node <code>ipn:1.0</code> target <code>ipn:2.128</code>, they should use distinct source endpoints such as <code>ipn:1.1001</code> and <code>ipn:1.1002</code>. The bundle protocol agent will then route responses back to the correct session based on the destination in the reflected bundle.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-2">For example, if two concurrent ping sessions on node <code>ipn:1.0</code> target <code>ipn:2.128</code>, they should use distinct source endpoints such as <code>ipn:1.1001</code> and <code>ipn:1.1002</code>. The bundle protocol agent will then route responses back to the correct session based on the destination of the response bundle.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-3">A ping client must not use a well-known echo service endpoint (for example, service number 128) as its own source endpoint. Per <a href="#when-a-response-is-sent" class="auto internal xref">Section 3.2.1</a>, services other than the echo service do not source bundles from an echo service endpoint; a request so sourced would direct the response to the local echo service rather than to the client.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="payload-format">
@@ -1649,55 +1622,18 @@ RTT = response_receive_time - request_sent_times[sequence_number]
         <h3 id="name-payload-format">
 <a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-payload-format" class="section-name selfRef">Payload Format</a>
         </h3>
-<p id="appendix-A.3-1">Since the echo service preserves bundle content unchanged except for the source and destination swap, the payload format is entirely at the discretion of the ping client. The echo service does not parse or interpret the payload, so implementations may use any encoding that suits their needs.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.3-2">At minimum, the payload need only contain a sequence number so that the client can match responses to their corresponding requests. For implementations seeking extensibility and interoperability, a CBOR-based format is suggested:<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
-<span id="name-suggested-payload-format-cb"></span><div id="fig-payload">
-<figure id="figure-1">
-          <div class="lang-cddl sourcecode" id="appendix-A.3-3.1">
-<pre>
-[
-  sequence,     ; uint: monotonically increasing counter
-  options       ; map: optional fields (may be empty)
-]
-</pre>
-</div>
-<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
-<a href="#name-suggested-payload-format-cb" class="selfRef">Suggested Payload Format (CBOR)</a>
-          </figcaption></figure>
-</div>
-<p id="appendix-A.3-4">The options map provides room for future extensions and may include:<a href="#appendix-A.3-4" class="pilcrow">¶</a></p>
-<span id="name-suggested-payload-options"></span><div id="tab-options">
-<table class="left" id="table-2">
-          <caption>
-<a href="#table-2" class="selfRef">Table 2</a>:
-<a href="#name-suggested-payload-options" class="selfRef">Suggested Payload Options</a>
-          </caption>
-<thead>
-            <tr>
-              <th class="text-left" rowspan="1" colspan="1">Key</th>
-              <th class="text-left" rowspan="1" colspan="1">Name</th>
-              <th class="text-left" rowspan="1" colspan="1">Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0</td>
-              <td class="text-left" rowspan="1" colspan="1">Padding</td>
-              <td class="text-left" rowspan="1" colspan="1">Padding bytes for path MTU testing; allows clients to test whether bundles of various sizes can traverse the network</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">1</td>
-              <td class="text-left" rowspan="1" colspan="1">Timestamp</td>
-              <td class="text-left" rowspan="1" colspan="1">DTN time (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.6" class="relref">Section 4.2.6</a></span>), i.e., milliseconds since the DTN Epoch, for debugging purposes; while not used for RTT calculation (see <a href="#rtt-calculation" class="auto internal xref">Appendix A.1</a>), this can help diagnose clock synchronization issues</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">2</td>
-              <td class="text-left" rowspan="1" colspan="1">Extension Blocks</td>
-              <td class="text-left" rowspan="1" colspan="1">List of attached extension block types; enables clients to verify which extension blocks survive the round trip</td>
-            </tr>
-          </tbody>
-        </table>
-</div>
+<p id="appendix-A.3-1">The echo service returns the payload unchanged, so its format is entirely at the discretion of the ping client; the service neither parses nor interprets it. This document defines no payload format.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-2">A client need only place a sequence number in the payload, so that it can match each response to the request that produced it. Everything else a client needs is kept in local state, keyed by that sequence number:<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.3-3.1">
+            <p id="appendix-A.3-3.1.1">the time the request was sent, used for the round-trip time calculation of <a href="#rtt-calculation" class="auto internal xref">Appendix A.1</a> (timestamps need not be carried in the payload); and<a href="#appendix-A.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.3-3.2">
+            <p id="appendix-A.3-3.2.1">optionally, whatever lets the client confirm that a response is an unmodified echo of its own request — for example, by retaining the payload it sent and comparing it against the payload returned.<a href="#appendix-A.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.3-4">Because the whole payload returns unchanged, a client can match and validate responses with no agreed wire format and without relying on Bundle Protocol Security in the network. Authenticating the responder itself is a separate matter, addressed by the echo service node's own BPSec policy on the response.<a href="#appendix-A.3-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-5">A client may also pad the payload with additional bytes to reach a chosen total bundle size. Because the echo service reflects the payload unchanged, padding the request is a simple and effective way to probe the largest bundle a path will carry; see <a href="#fragmentation" class="auto internal xref">Section 3.3.3</a>.<a href="#appendix-A.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="status-reports">
@@ -1705,18 +1641,9 @@ RTT = response_receive_time - request_sent_times[sequence_number]
         <h3 id="name-interpreting-status-reports">
 <a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-interpreting-status-reports" class="section-name selfRef">Interpreting Status Reports</a>
         </h3>
-<p id="appendix-A.4-1">When status report request flags are set, the BPA generates status reports per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. Because the echo service preserves both the bundle processing control flags and the report-to EID, clients may receive status reports for both the original bundle and the reflected response.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.4-2">Clients can distinguish these reports by examining the bundle identifier (source EID and creation timestamp) in each status report:<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-A.4-3.1">
-            <p id="appendix-A.4-3.1.1">Reports for the <strong>original bundle</strong> will have the client's endpoint as the source EID<a href="#appendix-A.4-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-A.4-3.2">
-            <p id="appendix-A.4-3.2.1">Reports for the <strong>response bundle</strong> will have the echo service endpoint as the source EID<a href="#appendix-A.4-3.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="appendix-A.4-4">This information can be useful for diagnosing where bundles are lost or delayed. For example, if a client receives a "Forwarded" report for the original bundle but no "Delivered" report, this suggests the bundle was lost between an intermediate node and the echo service.<a href="#appendix-A.4-4" class="pilcrow">¶</a></p>
-<p id="appendix-A.4-5">Note that status reporting is optional per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and many BPA implementations disable it by default. Clients should not rely on receiving status reports for correct operation; they are a supplementary diagnostic tool when available.<a href="#appendix-A.4-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-1">A client may request status reports on its request bundles in the usual way, by setting the relevant bundle processing control flags and a report-to EID. Such reports concern the request bundle's own progress toward the echo service and carry the client's endpoint as the source EID of the subject bundle.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">By setting status-report-request flags and a report-to EID on its request, a ping client asks to observe the exchange end-to-end. An echo service can honour this by propagating those settings onto the response bundle (see <a href="#response-bundle" class="auto internal xref">Section 3.2</a>). Where it does, the designated observer receives status reports for both legs of the exchange and can attribute each report to its leg from the source EID of the report's subject bundle: the client's endpoint for the request, and the echo service endpoint for the response. Because not every echo service does so, and status reporting is optional in any case, a client should not rely on receiving reports for the return leg. Note also that a client can tie a request-leg report to a specific request, because it knows that bundle's identifier, but cannot in general tie a response-leg report to a specific request: the response's creation timestamp is assigned by the echo service and is not predictable by the client. Round-trip completion for a given request is instead confirmed by the reflected payload, which carries the sequence number (see <a href="#rtt-calculation" class="auto internal xref">Appendix A.1</a>).<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-3">Status reports on the request bundle can still aid diagnosis. For example, a "Forwarded" report with no echo response suggests the request was lost between an intermediate node and the echo service. Note that status reporting is optional per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and many BPA implementations disable it by default; clients should not rely on receiving status reports for correct operation.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="statistics">
