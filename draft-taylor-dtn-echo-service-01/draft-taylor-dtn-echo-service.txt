@@ -1,0 +1,617 @@
+
+
+
+
+Delay/Disruption Tolerant Networking                           R. Taylor
+Internet-Draft                                      Aalyria Technologies
+Intended status: Standards Track                             1 July 2026
+Expires: 2 January 2027
+
+
+                           BPv7 Echo Service
+                  draft-taylor-dtn-echo-service-latest
+
+Abstract
+
+   This document specifies an echo service for Bundle Protocol Version 7
+   (BPv7) networks.  An echo service receives bundles at a well-known
+   endpoint and replies to each with a response bundle that returns the
+   payload to the originator.  This enables round-trip time measurement
+   and end-to-end connectivity verification in Delay-Tolerant Networks.
+   This document requests IANA allocation of a well-known IPN service
+   number for the echo service.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://ricktaylor.github.io/echo-service/draft-taylor-dtn-echo-
+   service.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-taylor-dtn-echo-service/.
+
+   Discussion of this document takes place on the Delay/Disruption
+   Tolerant Networking Working Group mailing list (mailto:dtn@ietf.org),
+   which is archived at https://mailarchive.ietf.org/arch/browse/dtn/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/dtn/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/ricktaylor/echo-service.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 2 January 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Terminology
+   3.  Echo Service Specification
+     3.1.  Service Endpoint
+     3.2.  The Response Bundle
+       3.2.1.  When a Response Is Sent
+       3.2.2.  Primary Block
+       3.2.3.  Bundle Processing Control Flags
+       3.2.4.  Payload Block
+       3.2.5.  Extension Blocks
+     3.3.  Client Considerations
+       3.3.1.  Session Disambiguation
+       3.3.2.  Response Authenticity
+       3.3.3.  Fragmentation
+   4.  Security Considerations
+     4.1.  Reflection and Amplification
+     4.2.  Information Disclosure
+     4.3.  Resource Exhaustion
+   5.  IANA Considerations
+     5.1.  Well-Known Service Registration
+   6.  References
+     6.1.  Normative References
+     6.2.  Informative References
+   Appendix A.  Ping Clients
+     A.1.  Round-Trip Time Calculation
+     A.2.  Endpoint Selection
+     A.3.  Payload Format
+     A.4.  Interpreting Status Reports
+     A.5.  Statistics
+   Author's Address
+
+1.  Introduction
+
+   Delay-Tolerant Networks (DTNs) present unique challenges for network
+   diagnostics.  Unlike traditional IP networks where ICMP Echo (ping)
+   provides immediate feedback, DTN bundles might traverse store-and-
+   forward paths with significant delays.  Nevertheless, the ability to
+   verify end-to-end connectivity and measure round-trip time remains
+   essential for network operators.
+
+   This document specifies an echo service for Bundle Protocol Version 7
+   [RFC9171].  An echo service receives bundles at a well-known endpoint
+   and replies to each with a single response bundle that returns the
+   payload to the originator.
+
+   This document specifies the externally observable content of the
+   response bundle as a set of conformance rules; it does not constrain
+   how an implementation produces that bundle.  An implementation may
+   construct a new bundle, or may derive the response from the request
+   internally, provided the response conforms to the rules in
+   Section 3.2.  Because the response is an ordinary bundle, the node's
+   Bundle Protocol Agent (BPA) handles its routing, extension-block
+   processing, and forwarding as it would for any other bundle the node
+   sources.
+
+   The echo service is intentionally simple: it interprets no payload
+   and performs no special processing beyond returning the payload to
+   its originator.  Defining the response as a wire contract rather than
+   an internal mechanism lets independent implementations interoperate
+   regardless of whether the echo service is built into the BPA or runs
+   as an ordinary application.  A standardized echo service enables
+   diagnostic tools such as ping clients to operate across heterogeneous
+   DTN deployments.
+
+2.  Conventions and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   This document uses terminology from the Bundle Protocol Version 7
+   specification [RFC9171].
+
+   Echo Service:  A Bundle Protocol service that returns the payload of
+      each received bundle to its originator in a response bundle.
+
+   Request Bundle:  A bundle received by an echo service at one of its
+      echo service endpoints.
+
+   Response Bundle:  The bundle an echo service sends in reply to a
+      request bundle; Section 3.2 defines its content.
+
+3.  Echo Service Specification
+
+3.1.  Service Endpoint
+
+   An echo service registers to receive bundles at one or more endpoint
+   identifiers.  The well-known endpoint is IPN-scheme service number
+   128 on any node; for example, ipn:2.128 represents the echo service
+   on node number 2.  Implementations MAY also support service number 7
+   for backwards compatibility with existing deployments; service number
+   7 is in the Private Use range per [RFC9758] and cannot be reserved.
+
+   An echo service SHOULD support the well-known endpoint, so that
+   clients can reach it without out-of-band configuration.  It MAY also
+   support private or alternative endpoints, which clients must learn of
+   by other means.
+
+3.2.  The Response Bundle
+
+   Upon receiving a bundle at one of its echo service endpoints (the
+   "request bundle"), an echo service generates a response as specified
+   in this section.  When a response is sent (Section 3.2.1), the echo
+   service MUST submit to its BPA, for transmission, exactly one bundle
+   (the "response bundle") conforming to these rules, and MUST NOT emit
+   more than one response bundle per request bundle.
+
+   These rules constrain only the content of the response bundle, not
+   the mechanism by which it is produced: an implementation MAY
+   construct a new bundle or MAY derive the response from the request
+   internally, provided the emitted response bundle conforms.  Aside
+   from the constraints in this section, the response bundle is an
+   ordinary bundle, constructed and processed under [RFC9171] (and,
+   where security is applied, [RFC9172]) like any other bundle the node
+   sources; this document does not restate those rules.
+
+3.2.1.  When a Response Is Sent
+
+   An echo service MUST NOT generate a response bundle when the source
+   node ID of the request bundle is the null endpoint ID, as no return
+   path exists ([RFC9171], Section 4.2.3).
+
+   An echo service MUST NOT generate a response bundle when the request
+   bundle's payload is an administrative record (the "ADU is an
+   administrative record" flag is set), to avoid reflecting status
+   reports and the bundle loops that could result.
+
+   An echo service MUST NOT generate bundles other than response
+   bundles.  Other services at the node SHOULD NOT use an echo service
+   endpoint as the source of bundles they originate.
+
+3.2.2.  Primary Block
+
+   The primary block of the response bundle MUST be set as follows.
+
+   Destination:  MUST be set to the source node ID of the request
+      bundle.
+
+   Source:  MUST be set to the echo service endpoint ID at which the
+      request bundle was received.  Where a node exposes more than one
+      such endpoint (for example, both an ipn and a dtn endpoint), the
+      source MUST be the specific endpoint to which the request bundle
+      was addressed.
+
+   Creation Timestamp:  An echo service MUST NOT reuse the request
+      bundle's creation timestamp; the response bundle is assigned its
+      own, as for any bundle the node sources.
+
+   Lifetime:  The response bundle SHOULD be assigned a lifetime that
+      gives it a reasonable opportunity to reach the originator.  Like
+      any bundle the node sources, it is subject to the node's local
+      lifetime policy, which bounds the retention cost of responses even
+      when a request asserts a very long lifetime.  Within that bound,
+      an echo service MAY set the response lifetime by reusing the
+      request bundle's lifetime value, or by deriving it from the
+      request bundle's observed transit time (its age on reception).  A
+      lifetime derived from observed transit time limits retention, but
+      can underestimate the requirement of a return path slower than the
+      forward path, and so benefits from a generous margin.
+
+   Report-To:  If the request bundle requested status reports, an echo
+      service SHOULD set the response bundle's report-to EID to that of
+      the request bundle, so that status reports for both legs of the
+      exchange reach the same observer.  Because the request and
+      response are distinct bundles, each report is then attributable to
+      its leg by the source EID of its subject bundle.  Otherwise, the
+      report-to EID is set as for any bundle the node sources.
+
+3.2.3.  Bundle Processing Control Flags
+
+   An echo service does not copy the request bundle's control flags
+   wholesale.  The following per-flag requirements specify the response
+   bundle's control flags; any flag not listed must not just be copied
+   verbatim from the request bundle, but is set as for any bundle the
+   node sources.
+
+   "ADU is an administrative record":  MUST NOT be set.  The response
+      carries the reflected application payload, which is not an
+      administrative record.
+
+   "Bundle must not be fragmented":  MAY be copied from the request
+      bundle.
+
+   "Acknowledgement by application is requested":  MUST NOT be set.  The
+      response does not solicit an application acknowledgement.
+
+   Status-report-request flags ("Request reporting of bundle
+   reception", "Request reporting of bundle forwarding", "Request
+   reporting of bundle delivery", and "Request reporting of bundle
+   deletion"):  MAY be set, typically by mirroring the request bundle's
+      flags, so that an observer can follow both legs of the exchange.
+      These take effect together with the report-to EID (see the Report-
+      To field above).
+
+   "Status time requested in reports":  MAY be set, typically by
+      mirroring the request bundle's value when the echo service mirrors
+      the status-report-request flags, so that reports for the response
+      carry the time of the reported event whenever the requester asked
+      for that detail.
+
+3.2.4.  Payload Block
+
+   The response bundle MUST contain a payload block whose content is
+   identical, byte for byte, to the payload block content of the request
+   bundle.  An echo service MUST NOT alter, truncate, reorder, or append
+   to the payload.  This reflected payload is the only content
+   guaranteed to survive the round trip; it allows a client to verify
+   round-trip integrity by comparing the returned payload with what it
+   sent.
+
+3.2.5.  Extension Blocks
+
+   An echo service is not obliged to reproduce any extension block from
+   the request bundle in the response bundle.
+
+   An echo service MAY include extension blocks in the response bundle —
+   for example a Bundle Age Block, Hop Count Block, Previous Node Block,
+   or BPSec [RFC9172] block — as determined by the normal outbound
+   bundle processing and local security policy of its node.
+
+   An echo service that copies an extension block from the request
+   bundle into the response remains bound by that block's own
+   specification.  In particular, it cannot assume the security role of
+   a BPSec block's original security source, so copying BPSec blocks
+   from the request is generally not meaningful.
+
+3.3.  Client Considerations
+
+   While this specification focuses primarily on the echo service,
+   certain requirements apply to clients to ensure correct operation.
+   This section defines those normative requirements.
+
+3.3.1.  Session Disambiguation
+
+   When multiple clients run concurrently on the same node, each session
+   must be distinguishable so that responses are delivered to the
+   correct client.  Multiple concurrent clients on the same node MUST
+   use distinct source endpoint identifiers.  Per [RFC9171], each
+   application instance registers with a unique endpoint ID, and the
+   combination of source and destination provides session disambiguation
+   at the bundle layer without requiring any session identifier in the
+   payload.
+
+3.3.2.  Response Authenticity
+
+   A response bundle is an independently sourced bundle: its primary
+   block is that of the echo service, and it is not cryptographically
+   bound to the request bundle.  A client therefore cannot use a Bundle
+   Integrity Block (BIB) it placed on the request to authenticate the
+   response, because the request's BIB is not carried into the response
+   (see Section 3.2.5).  A client that requires assurance of a
+   response's origin relies instead on the echo service node's own BPSec
+   [RFC9172] policy applied to the response bundle, for example a BIB
+   whose security source is the echo service node.  Alternatively,
+   because the echo service returns the payload unchanged, a client can
+   detect modified or spoofed responses by validating the returned
+   payload against state it retained locally when sending the request;
+   see Appendix A.3.
+
+3.3.3.  Fragmentation
+
+   Diagnostic clients MAY set the "bundle must not be fragmented" flag
+   in bundles sent to the echo service.  Fragmentation complicates
+   round-trip time measurement and payload verification: fragments might
+   take different paths, arrive out of order, or be lost independently.
+   Setting this flag ensures the bundle either traverses the network
+   intact or is dropped, providing cleaner diagnostic results.
+
+   If a client needs to test path MTU, it can send bundles of increasing
+   size with fragmentation disabled and observe which sizes succeed.
+   This approach directly reveals the path's maximum bundle size rather
+   than relying on fragmentation behavior.
+
+4.  Security Considerations
+
+   This section discusses security issues relevant to the echo service
+   and potential mitigations.
+
+4.1.  Reflection and Amplification
+
+   Like any echo or reflection service, an echo service can be abused to
+   direct traffic at a victim.  Because the source of a bundle is not
+   authenticated by default, an attacker can send request bundles whose
+   source is set to a victim's endpoint, causing the echo service to
+   send response bundles to that victim.  The echo service thereby
+   launders the attacker's traffic and conceals its origin.
+
+   The volume amplification factor is close to one: an echo service
+   returns the payload unchanged, and the requirement to emit at most
+   one response bundle per request bundle (see Section 3.2) prevents
+   count amplification.  The principal risk is therefore reflection
+   toward, and concentration of traffic on, a chosen victim rather than
+   bandwidth amplification.  To mitigate this risk, implementations
+   SHOULD:
+
+   *  Rate-limit response bundles, particularly to or from previously
+      unseen endpoints
+
+   *  Monitor for unusual traffic patterns that might indicate abuse
+
+   *  Consider requiring authentication via Bundle Protocol Security
+      [RFC9172] in sensitive deployments
+
+   An echo service that propagates the request bundle's report-to EID
+   and status report requests onto the response (see Section 3.2)
+   extends this reflection surface to the status reports generated for
+   the response; the same mitigations apply.
+
+4.2.  Information Disclosure
+
+   Echo responses inherently confirm the existence and reachability of
+   the echo service endpoint.  Additionally, round-trip time
+   measurements might reveal information about network topology, path
+   characteristics, and store-and-forward delays that could be useful to
+   an adversary mapping a network.
+
+   In sensitive environments where this information disclosure is a
+   concern, operators MAY:
+
+   *  Restrict echo service access to authenticated endpoints using
+      BPSec
+
+   *  Disable the echo service entirely on nodes where diagnostics are
+      not required
+
+   *  Deploy the echo service only on designated diagnostic nodes rather
+      than throughout the network
+
+4.3.  Resource Exhaustion
+
+   An attacker could attempt to exhaust echo service resources by
+   sending a large volume of bundles or bundles with very large
+   payloads.  Since the echo service must construct and transmit a
+   response bundle for each request, this creates both memory and
+   bandwidth pressure.  Implementations SHOULD:
+
+   *  Limit the maximum payload size accepted for reflection
+
+   *  Implement rate limiting on both connections and bundle processing
+
+   *  Monitor resource usage and reject or delay bundle processing when
+      under stress
+
+5.  IANA Considerations
+
+5.1.  Well-Known Service Registration
+
+   This document requests IANA to register the following entry in the
+   "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry
+   established by [RFC9758]:
+
+   +=======+==============+=================+
+   | Value | Description  | Reference       |
+   +=======+==============+=================+
+   | 128   | Echo Service | (this document) |
+   +-------+--------------+-----------------+
+
+       Table 1: Echo Service Registration
+
+   For the IPN scheme, the service number is appended to the node
+   number; for example, ipn:2.128 is the echo service on node number 2.
+
+   Note: Existing implementations do not agree on a service number for
+   echo.  Several use 7 by convention, mirroring the well-known UDP port
+   for the Echo Protocol [RFC862], while others use different values
+   (for example, 2047).  All of these lie within ranges designated
+   Private Use by [RFC9758] and so cannot be reserved.  This document
+   requests service number 128, the lowest value in the Standards Action
+   range, to provide a single registered value.  Implementations MAY
+   continue to support service number 7, or other values, for backwards
+   compatibility.
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9171]  Burleigh, S., Fall, K., and E. Birrane, III, "Bundle
+              Protocol Version 7", RFC 9171, DOI 10.17487/RFC9171,
+              January 2022, <https://www.rfc-editor.org/rfc/rfc9171>.
+
+   [RFC9172]  Birrane, III, E. and K. McKeever, "Bundle Protocol
+              Security (BPSec)", RFC 9172, DOI 10.17487/RFC9172, January
+              2022, <https://www.rfc-editor.org/rfc/rfc9172>.
+
+   [RFC9758]  Taylor, R. and E. Birrane III, "Updates to the 'ipn' URI
+              Scheme", RFC 9758, DOI 10.17487/RFC9758, May 2025,
+              <https://www.rfc-editor.org/rfc/rfc9758>.
+
+6.2.  Informative References
+
+   [RFC862]   Postel, J., "Echo Protocol", STD 20, RFC 862,
+              DOI 10.17487/RFC0862, May 1983,
+              <https://www.rfc-editor.org/rfc/rfc862>.
+
+Appendix A.  Ping Clients
+
+   This appendix provides non-normative guidance for implementing ping
+   clients that use the echo service.  While the body of this document
+   defines the echo service behaviour, effective ping clients require
+   careful attention to timing, session management, and payload design.
+
+A.1.  Round-Trip Time Calculation
+
+   Accurate round-trip time (RTT) measurement is the primary purpose of
+   most ping implementations.  Ping clients should calculate RTT using
+   locally stored timestamps rather than timestamps embedded in the
+   payload:
+
+   RTT = response_receive_time - request_sent_times[sequence_number]
+
+   This approach offers several advantages:
+
+   *  Requires no clock synchronization between nodes
+
+   *  Works correctly even if the payload is corrupted
+
+   *  Avoids serialization overhead in the timing path
+
+   The client should maintain a map from sequence number to sent
+   timestamp.  It should populate the map when each request is
+   transmitted and consult it when each response arrives.  Entries
+   should be removed after a configurable timeout to prevent unbounded
+   memory growth.
+
+A.2.  Endpoint Selection
+
+   As required by Section 3.3.1, multiple concurrent clients on the same
+   node use distinct source endpoint identifiers.
+
+   For example, if two concurrent ping sessions on node ipn:1.0 target
+   ipn:2.128, they should use distinct source endpoints such as
+   ipn:1.1001 and ipn:1.1002.  The bundle protocol agent will then route
+   responses back to the correct session based on the destination of the
+   response bundle.
+
+   A ping client must not use a well-known echo service endpoint (for
+   example, service number 128) as its own source endpoint.  Per
+   Section 3.2.1, services other than the echo service do not source
+   bundles from an echo service endpoint; a request so sourced would
+   direct the response to the local echo service rather than to the
+   client.
+
+A.3.  Payload Format
+
+   The echo service returns the payload unchanged, so its format is
+   entirely at the discretion of the ping client; the service neither
+   parses nor interprets it.  This document defines no payload format.
+
+   A client need only place a sequence number in the payload, so that it
+   can match each response to the request that produced it.  Everything
+   else a client needs is kept in local state, keyed by that sequence
+   number:
+
+   *  the time the request was sent, used for the round-trip time
+      calculation of Appendix A.1 (timestamps need not be carried in the
+      payload); and
+
+   *  optionally, whatever lets the client confirm that a response is an
+      unmodified echo of its own request — for example, by retaining the
+      payload it sent and comparing it against the payload returned.
+
+   Because the whole payload returns unchanged, a client can match and
+   validate responses with no agreed wire format and without relying on
+   Bundle Protocol Security in the network.  Authenticating the
+   responder itself is a separate matter, addressed by the echo service
+   node's own BPSec policy on the response.
+
+   A client may also pad the payload with additional bytes to reach a
+   chosen total bundle size.  Because the echo service reflects the
+   payload unchanged, padding the request is a simple and effective way
+   to probe the largest bundle a path will carry; see Section 3.3.3.
+
+A.4.  Interpreting Status Reports
+
+   A client may request status reports on its request bundles in the
+   usual way, by setting the relevant bundle processing control flags
+   and a report-to EID.  Such reports concern the request bundle's own
+   progress toward the echo service and carry the client's endpoint as
+   the source EID of the subject bundle.
+
+   By setting status-report-request flags and a report-to EID on its
+   request, a ping client asks to observe the exchange end-to-end.  An
+   echo service can honour this by propagating those settings onto the
+   response bundle (see Section 3.2).  Where it does, the designated
+   observer receives status reports for both legs of the exchange and
+   can attribute each report to its leg from the source EID of the
+   report's subject bundle: the client's endpoint for the request, and
+   the echo service endpoint for the response.  Because not every echo
+   service does so, and status reporting is optional in any case, a
+   client should not rely on receiving reports for the return leg.  Note
+   also that a client can tie a request-leg report to a specific
+   request, because it knows that bundle's identifier, but cannot in
+   general tie a response-leg report to a specific request: the
+   response's creation timestamp is assigned by the echo service and is
+   not predictable by the client.  Round-trip completion for a given
+   request is instead confirmed by the reflected payload, which carries
+   the sequence number (see Appendix A.1).
+
+   Status reports on the request bundle can still aid diagnosis.  For
+   example, a "Forwarded" report with no echo response suggests the
+   request was lost between an intermediate node and the echo service.
+   Note that status reporting is optional per [RFC9171] and many BPA
+   implementations disable it by default; clients should not rely on
+   receiving status reports for correct operation.
+
+A.5.  Statistics
+
+   Ping clients should track and report standard statistics consistent
+   with traditional IP ping:
+
+   *  Bundles transmitted
+
+   *  Responses received
+
+   *  Packet loss percentage
+
+   *  RTT minimum, average, maximum, and standard deviation
+
+   These statistics provide a quick assessment of network health and
+   help identify routing problems, congestion, or intermittent
+   connectivity.
+
+   Example output format following ICMP ping conventions:
+
+   --- ipn:2.128 ping statistics ---
+   5 bundles transmitted, 4 received, 20% loss
+   rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
+
+Author's Address
+
+   Rick Taylor
+   Aalyria Technologies
+   Email: rtaylor@aalyria.com
