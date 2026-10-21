@@ -133,7 +133,7 @@ The response bundle's bundle processing control flags are set as for any bundle 
 : MUST NOT be set. The response is a copy of the request, which is not an administrative record ({{when-a-response-is-sent}}).
 
 "Bundle must not be fragmented":
-: SHOULD be copied from the request bundle, unless local policy requires otherwise. A client that sets this flag is typically measuring round-trip time or probing the largest bundle a path will carry ({{fragmentation}}), and either measurement is undermined if the response bundle is fragmented on the return path.
+: SHOULD be copied from the request bundle, unless local policy requires otherwise. A client that sets this flag is typically measuring round-trip time or probing the largest bundle a path will carry ({{size-probing}}), and either measurement is undermined if the response bundle is fragmented on the return path.
 
 "Acknowledgement by application is requested":
 : MUST NOT be set. The response does not solicit an application acknowledgement.
@@ -166,9 +166,7 @@ A response bundle is an independently sourced bundle: its primary block is that 
 
 ### Fragmentation {#fragmentation}
 
-Diagnostic clients SHOULD set the "bundle must not be fragmented" flag in request bundles, unless they intend to exercise fragmentation itself. Fragmentation complicates round-trip time measurement and response verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the request bundle either traverses the network intact or is dropped, providing cleaner diagnostic results. An echo service normally copies the flag to the response bundle ({{flags}}), so the same holds for the return path.
-
-If a client needs to test path MTU, it can send request bundles of increasing size with fragmentation disabled and observe which sizes succeed. This approach directly reveals the path's maximum bundle size rather than relying on fragmentation behavior. Because the response bundle normally carries the flag too, a given size succeeds only if both the forward and return paths carry it intact, so the result reflects the more restrictive of the two.
+Diagnostic clients SHOULD set the "bundle must not be fragmented" flag in request bundles, unless they intend to exercise fragmentation itself. Fragmentation complicates round-trip time measurement and response verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the request bundle either traverses the network intact or is dropped, providing cleaner diagnostic results. An echo service normally copies the flag to the response bundle ({{flags}}), so the same holds for the return path. Setting the flag also makes it possible to probe the largest bundle a path will carry; see {{size-probing}}.
 
 # Operational Considerations {#ops}
 
@@ -183,7 +181,7 @@ Policy can be applied at different points and at different granularities, for ex
 - by the BPA before delivery, so that unwanted requests never reach the echo service;
 - by source node ID, or by a set of source EIDs (for example, expressed as EID patterns {{?I-D.ietf-dtn-eid-pattern}});
 - by the presence on the request bundle of a BPSec {{!RFC9172}} integrity block whose security source the node trusts;
-- by the extension blocks present on the request bundle, for example declining requests that carry blocks of types the node does not expect;
+- by the BPA before delivery, according to the extension blocks present on the request bundle, for example discarding request bundles that carry blocks of types the node does not expect;
 - by the node from which the request bundle was received, where the convergence layer or a Previous Node Block identifies it; or
 - by the echo service endpoint at which the request arrived.
 
@@ -256,11 +254,11 @@ Source EIDs are not authenticated by default, so these checks help discard refle
 
 Echo responses inherently confirm the existence and reachability of the echo service endpoint. Additionally, round-trip time measurements might reveal information about network topology, path characteristics, and store-and-forward delays that could be useful to an adversary mapping a network.
 
-The presence or absence of a response can also be used to probe how nodes on the forward path process particular bundles. A requester controls the extension blocks on a request bundle and their block processing control flags: for example, it can attach a block marked "Delete bundle if block can't be processed" ({{!RFC9171, Section 4.2.4}}), malformed blocks, or BPSec blocks with particular security contexts. Whether a response returns then reveals whether every node on the path accepted and forwarded such a bundle, and so which block types those nodes support, how they apply their security policy, and potentially which implementations they run. A report-to EID of the requester's choosing, together with "Transmit status report if block can't be processed", can additionally reveal which node rejected the bundle. Such probing is also a legitimate diagnostic, so this document does not prohibit it; it is limited on the return path because the response bundle is a new bundle, carrying none of the request bundle's extension blocks ({{extension-blocks}}).
+Extension blocks on request bundles can also reveal how nodes on the forward path process bundles, and so which block types they support, how they apply security policy, and potentially which implementations they run ({{block-probing}}). Most of this comes from status reports rather than from the echo service: a block that no node processes, marked "Transmit status report if block can't be processed", elicits a report from every node that receives it where status reporting is enabled, sent to a report-to EID of the requester's choosing. The same is true of a bundle sent to any destination, and the exposure is limited in the same way, by disabling status reporting as {{!RFC9171, Section 8}} recommends by default, or by filtering bundles at the edge of the network. The echo service adds only whether a response returns, and none of the request bundle's extension blocks are carried into the response bundle ({{extension-blocks}}), so the return path is not exposed. Such probing is also a legitimate diagnostic, which this document does not prohibit.
 
 In sensitive environments where this information disclosure is a concern, operators can:
 
-- Restrict echo service access to authenticated endpoints using BPSec, or decline requests carrying unexpected extension blocks ({{ops-policy}})
+- Restrict echo service access to authenticated endpoints using BPSec, or discard request bundles carrying unexpected extension blocks before delivery ({{ops-policy}})
 - Disable the echo service entirely on nodes where diagnostics are not required ({{ops-policy}})
 - Deploy the echo service only on designated diagnostic nodes rather than throughout the network
 
@@ -332,7 +330,7 @@ Alongside the sequence number, a client should include a value that it does not 
 
 Because the whole request returns unchanged, a client can match and validate responses with no agreed wire format and without relying on Bundle Protocol Security in the network. Authenticating the responder itself is a separate matter, addressed by the echo service node's own BPSec policy on the response bundle ({{response-authenticity}}).
 
-A client may also pad the request with additional bytes to reach a chosen request bundle size. Because the response is identical to the request, padding the request is a simple and effective way to probe the largest bundle a path will carry; see {{fragmentation}}.
+A client may also pad the request with additional bytes to reach a chosen request bundle size, for example to probe the largest bundle a path will carry ({{size-probing}}).
 
 ## Interpreting Status Reports {#status-reports}
 
@@ -341,6 +339,36 @@ A client may request status reports on its request bundles in the usual way, by 
 By setting status-report-request flags and a report-to EID on its request bundle, a ping client asks to observe the exchange end-to-end. An echo service can honor this by propagating those settings onto the response bundle (see {{response-bundle}}). Where it does, the designated observer receives status reports for both legs of the exchange and can attribute each report to its leg from the source EID of the report's subject bundle: the client's endpoint for the request bundle, and for the response bundle the echo service endpoint or, where the request was addressed to a non-singleton endpoint, the responding node's administrative endpoint (see {{ops-non-singleton}}). Because not every echo service does so, and status reporting is optional in any case, a client should not rely on receiving reports for the return leg. Note also that a client can tie a request-leg report to a specific request, because it knows that bundle's identifier, but cannot in general tie a response-leg report to a specific request: the response bundle's creation timestamp is assigned by the echo service and is not predictable by the client. Round-trip completion for a given request is instead confirmed by the response, which carries the sequence number (see {{rtt-calculation}}).
 
 Status reports on the request bundle can still aid diagnosis. For example, a "Forwarded" report with no corresponding response suggests the request bundle was lost between an intermediate node and the echo service. Note that status reporting is optional per {{!RFC9171}} and many BPA implementations disable it by default; clients should not rely on receiving status reports for correct operation.
+
+## Path Probing {#path-probing}
+
+A response confirms more than reachability: it shows that the request bundle, as the client constructed it, was carried to the echo service node and that a response bundle came back. By varying how it constructs request bundles, a ping client can use this to test how a path treats particular bundles before an application relies on them. This section describes two such probes: varying the extension blocks on request bundles, and varying their size.
+
+### Extension Block Probing {#block-probing}
+
+A request bundle is an ordinary bundle sourced by the client's node, so the client can attach extension blocks to it, and set their block processing control flags ({{!RFC9171, Section 4.2.4}}), as for any bundle it sources. A response then shows that a request bundle carrying those blocks was received, processed, and forwarded by every node on the forward path, and delivered at the echo service node. A client can use this to test, for example, whether the nodes on a path support a new extension block type, or accept a BPSec {{!RFC9172}} block with a particular security context.
+
+The block attached can be of a type whose support is under test, or of a type that no node on the path is expected to process, such as one from the private and experimental range ({{!RFC9171, Section 4.3.2}}), in which case it serves purely as a signal. Either way, the client sets "Transmit status report if block can't be processed" on the block and a report-to EID that it monitors. Each node that receives the request bundle and cannot process the block then generates a reception status report with reason code "Block unsupported", where status reporting is enabled ({{!RFC9171, Section 5.6}}); nodes that can process the block do not. The block's other flags determine what happens next:
+
+- With neither "Delete bundle if block can't be processed" nor "Discard block if it can't be processed" set, the request bundle continues with the block intact. Every node on the forward path that cannot process the block reports, so a block that no node processes elicits a report from each node in turn, and the response still confirms the path end to end.
+- With "Discard block if it can't be processed" set, the first node that cannot process the block reports and removes it, and the request bundle continues without it. The report identifies where support for the block ends, and the response is unaffected.
+- With "Delete bundle if block can't be processed" set, the first node that cannot process the block reports and deletes the request bundle, so no response returns. A response then shows that every node on the forward path, including the echo service node, processed the block, even where status reporting is disabled.
+
+A Hop Count Block ({{!RFC9171, Section 4.4.3}}) can be used in a similar way to bound how far a request bundle travels: a request bundle whose hop count exceeds its hop limit is deleted for the reason "Hop limit exceeded", and a deletion status report, where requested and generated, identifies the node at which this happened.
+
+Such probes test only the forward path. The response bundle is a new bundle that carries none of the request bundle's extension blocks ({{extension-blocks}}), so the return path is not tested; testing it needs a request sent in the opposite direction. A request can also go unanswered for reasons unrelated to the block under test ({{ops-missing}}), including policy at the echo service node that discards request bundles carrying unexpected extension blocks ({{ops-policy}}). A missing response is therefore best interpreted against a control: a request bundle without the block under test, sent along the same path at about the same time. A response to the control but not to the probe points to the block; no response to either says nothing about it. Status reports add detail where they are available, but are often disabled ({{status-reports}}).
+
+Attaching extension blocks to a request bundle depends on the interface that the client's BPA offers to applications. A client that can only submit ADUs for transmission might be unable to do so, so this kind of probing is better suited to diagnostic tools with lower-level access to their BPA.
+
+### Bundle Size Probing {#size-probing}
+
+A client can probe the largest bundle that a path will carry without fragmentation by sending request bundles of increasing size, padding the request ({{payload-format}}), with "Bundle must not be fragmented" set ({{fragmentation}}). Because a response is identical to its request, the response bundle carries the same data on the return path, so unlike extension block probes, a size probe tests both directions: a response shows that the forward path carried the request bundle, and the return path the response bundle, each unfragmented.
+
+This resembles packetization layer path MTU discovery {{?RFC8899}} rather than ICMP-based path MTU discovery. {{!RFC9171}} defines no status report reason code indicating that a bundle was too large to forward unfragmented; a node that cannot forward such a bundle might retain it until a sufficiently long contact, or delete it for another reason, such as "No timely contact with next node on route". A client therefore learns only from success, and a result is subject to the following limits:
+
+- The limit is not a fixed property of the path. It depends on convergence-layer limits, such as the TCPCL Transfer MRU {{?RFC9174}}, and on the volume of upcoming contacts and the storage available at each node ({{!RFC9171, Section 5.8}}), and so can vary over time.
+- The client controls only the size of the request bundle as it leaves its node. Nodes on the path can add extension blocks, and the response bundle carries the echo service node's own primary block and extension blocks ({{extension-blocks}}), so it can be larger or smaller than the request bundle. A result is approximate by the size of those blocks.
+- An echo service node can limit the size of request it accepts ({{resource-exhaustion}}), which caps the size that can be probed, and a missing response cannot by itself be distinguished from loss or rate limiting ({{ops-missing}}). Interleaving small control requests helps to separate a size limit from other causes, and a delivery status report for a large request bundle, where available, shows that the forward path carried it and so places the limit on the return path.
 
 ## Statistics
 
