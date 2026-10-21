@@ -1,13 +1,13 @@
 <!-- regenerate: on (set to off if you edit this file) -->
 
-# BPv7 Echo service
+# BPv7 Echo Service
 
-This is the working area for the individual Internet-Draft, "BPv7 Echo service".
+This is the working area for the IETF [DTN Working Group](https://datatracker.ietf.org/group/dtn/documents/) Internet-Draft, "BPv7 Echo Service".
 
-* [Editor's Copy](https://ricktaylor.github.io/echo-service/#go.draft-taylor-dtn-echo-service.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-taylor-dtn-echo-service)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-taylor-dtn-echo-service)
-* [Compare Editor's Copy to Individual Draft](https://ricktaylor.github.io/echo-service/#go.draft-taylor-dtn-echo-service.diff)
+* [Editor's Copy](https://ricktaylor.github.io/echo-service/#go.draft-ietf-dtn-echo-service.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-ietf-dtn-echo-service)
+* [Working Group Draft](https://datatracker.ietf.org/doc/html/draft-ietf-dtn-echo-service)
+* [Compare Editor's Copy to Working Group Draft](https://ricktaylor.github.io/echo-service/#go.draft-ietf-dtn-echo-service.diff)
 
 
 ## Contributing

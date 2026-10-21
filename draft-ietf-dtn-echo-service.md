@@ -5,7 +5,7 @@ abbrev: BPEcho
 category: std
 ipr: trust200902
 
-docname: draft-taylor-dtn-echo-service-latest
+docname: draft-ietf-dtn-echo-service-latest
 submissiontype: IETF  # also: "independent", "editorial", "IAB", or "IRTF"
 number:
 date:
@@ -25,7 +25,7 @@ venue:
   mail: dtn@ietf.org
   arch: https://mailarchive.ietf.org/arch/browse/dtn/
   github: ricktaylor/echo-service
-  latest: https://ricktaylor.github.io/echo-service/draft-taylor-dtn-echo-service.html
+  latest: https://ricktaylor.github.io/echo-service/draft-ietf-dtn-echo-service.html
 
 author:
 

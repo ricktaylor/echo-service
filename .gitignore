@@ -18,7 +18,7 @@
 /versioned/
 Gemfile.lock
 archive.json
-draft-taylor-dtn-echo-service.xml
+draft-ietf-dtn-echo-service.xml
 package-lock.json
 report.xml
 !requirements.txt
