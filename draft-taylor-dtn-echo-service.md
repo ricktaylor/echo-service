@@ -49,9 +49,7 @@ Delay-Tolerant Networks (DTNs) present unique challenges for network diagnostics
 
 This document specifies an echo service for Bundle Protocol Version 7 {{!RFC9171}}. An echo service receives bundles at a well-known endpoint and replies to each with a single response bundle that returns the payload to the originator.
 
-This document specifies the externally observable content of the response bundle as a set of conformance rules; it does not constrain how an implementation produces that bundle. An implementation may construct a new bundle, or may derive the response from the request internally, provided the response conforms to the rules in {{response-bundle}}. Because the response is an ordinary bundle, the node's Bundle Protocol Agent (BPA) handles its routing, extension-block processing, and forwarding as it would for any other bundle the node sources.
-
-The echo service is intentionally simple: it interprets no payload and performs no special processing beyond returning the payload to its originator. Defining the response as a wire contract rather than an internal mechanism lets independent implementations interoperate regardless of whether the echo service is built into the BPA or runs as an ordinary application. A standardized echo service enables diagnostic tools such as ping clients to operate across heterogeneous DTN deployments.
+The echo service is intentionally simple: it does not interpret requests and performs no special processing beyond returning each one to its originator. Defining the response bundle as a wire contract rather than an internal mechanism lets independent implementations interoperate regardless of whether the echo service is built into the Bundle Protocol Agent (BPA) or runs as an ordinary application. A standardized echo service enables diagnostic tools such as ping clients to operate across heterogeneous DTN deployments.
 
 # Conventions and Terminology
 
@@ -60,33 +58,45 @@ The echo service is intentionally simple: it interprets no payload and performs 
 This document uses terminology from the Bundle Protocol Version 7 specification {{!RFC9171}}.
 
 Echo Service:
-: A Bundle Protocol service that returns the payload of each received bundle to its originator in a response bundle.
+: A Bundle Protocol service that returns each request to its originator as a response.
+
+Request:
+: An application data unit (ADU) sent to an echo service for return to its originator.
 
 Request Bundle:
-: A bundle received by an echo service at one of its echo service endpoints.
+: The bundle that carries a request as its payload, received by an echo service at one of its echo service endpoints.
+
+Response:
+: The ADU that an echo service sends in reply to a request: a byte-for-byte copy of that request ({{payload-block}}).
 
 Response Bundle:
-: The bundle an echo service sends in reply to a request bundle; {{response-bundle}} defines its content.
+: The bundle that carries a response as its payload; {{response-bundle}} defines its content.
+
+Requests and responses are the units of the echo service's behavior; request bundles and response bundles are named where the content or processing of the bundle itself matters. The source or destination of a request or response is that of the bundle that carries it.
 
 # Echo Service Specification
 
 ## Service Endpoint
 
-An echo service registers to receive bundles at one or more endpoint identifiers. The well-known endpoint is IPN-scheme service number 128 on any node; for example, `ipn:2.128` represents the echo service on node number 2. Implementations MAY also support service number 7 for backwards compatibility with existing deployments; service number 7 is in the Private Use range per {{!RFC9758}} and cannot be reserved.
+An echo service registers to receive requests at one or more endpoint identifiers. The well-known endpoint is ipn-scheme service number TBD1 ({{iana-considerations}}) on any node; for example, `ipn:2.TBD1` represents the echo service on node number 2. Implementations MAY also support service number 7 for backwards compatibility with existing deployments; service number 7 is in the Private Use range per {{!RFC9758}} and cannot be reserved.
 
 An echo service SHOULD support the well-known endpoint, so that clients can reach it without out-of-band configuration. It MAY also support private or alternative endpoints, which clients must learn of by other means.
 
 ## The Response Bundle {#response-bundle}
 
-Upon receiving a bundle at one of its echo service endpoints (the "request bundle"), an echo service generates a response as specified in this section. When a response is sent ({{when-a-response-is-sent}}), the echo service MUST submit to its BPA, for transmission, exactly one bundle (the "response bundle") conforming to these rules, and MUST NOT emit more than one response bundle per request bundle.
+Upon receiving a request at one of its echo service endpoints, an echo service generates a response as specified in this section. When a response is sent ({{when-a-response-is-sent}}), the echo service MUST submit to its BPA, for transmission, exactly one response bundle conforming to these rules, and MUST NOT emit more than one response per request.
 
-These rules constrain only the content of the response bundle, not the mechanism by which it is produced: an implementation MAY construct a new bundle or MAY derive the response from the request internally, provided the emitted response bundle conforms. Aside from the constraints in this section, the response bundle is an ordinary bundle, constructed and processed under {{!RFC9171}} (and, where security is applied, {{!RFC9172}}) like any other bundle the node sources; this document does not restate those rules.
+These rules constrain only the content of the response bundle, not the mechanism by which it is produced: an implementation MAY construct a new bundle or MAY derive the response bundle from the request bundle internally, provided the emitted response bundle conforms. Aside from the constraints in this section, the response bundle is an ordinary bundle, constructed and processed under {{!RFC9171}} (and, where security is applied, {{!RFC9172}}) like any other bundle the node sources; this document does not restate those rules.
 
 ### When a Response Is Sent {#when-a-response-is-sent}
 
-An echo service MUST NOT generate a response bundle when the source node ID of the request bundle is the null endpoint ID, as no return path exists ({{!RFC9171, Section 4.2.3}}).
+An echo service MUST NOT respond to a request whose source is the null endpoint ID, as no return path exists ({{!RFC9171, Section 4.2.3}}).
 
-An echo service MUST NOT generate a response bundle when the request bundle's payload is an administrative record (the "ADU is an administrative record" flag is set), to avoid reflecting status reports and the bundle loops that could result.
+An echo service MUST NOT respond to a request that is an administrative record (that is, when the request bundle's "ADU is an administrative record" flag is set), to avoid reflecting status reports and the bundle loops that could result.
+
+An echo service MUST NOT respond to a request whose source is an echo service endpoint: an ipn-scheme EID with the well-known echo service number ({{iana-considerations}}), or an EID that the echo service is configured to recognize as an echo service endpoint (for example, service number 7 where legacy echo services are deployed). Because only an echo service sources bundles from an echo service endpoint, and then only response bundles, such a request is in fact a response, typically elicited by a request whose source was forged; answering it would set two echo services exchanging responses with each other indefinitely.
+
+An echo service MAY also decline to respond to a request as a matter of local policy, for example to enforce access restrictions or rate limits ({{ops-policy}}).
 
 An echo service MUST NOT generate bundles other than response bundles. Other services at the node SHOULD NOT use an echo service endpoint as the source of bundles they originate.
 
@@ -98,26 +108,26 @@ Destination:
 : MUST be set to the source node ID of the request bundle.
 
 Source:
-: MUST be set to the echo service endpoint ID at which the request bundle was received. Where a node exposes more than one such endpoint (for example, both an `ipn` and a `dtn` endpoint), the source MUST be the specific endpoint to which the request bundle was addressed.
+: If the request bundle was addressed to a singleton endpoint, MUST be set to that echo service endpoint ID; where a node exposes more than one echo service endpoint (for example, both an `ipn` and a `dtn` endpoint), this is the specific endpoint to which the request bundle was addressed. If the request bundle was addressed to a non-singleton endpoint, which cannot serve as the source of a bundle, the source SHOULD be set to the EID of the echo service node's administrative endpoint ({{ops-non-singleton}}).
 
 Creation Timestamp:
 : An echo service MUST NOT reuse the request bundle's creation timestamp; the response bundle is assigned its own, as for any bundle the node sources.
 
 Lifetime:
-: The response bundle SHOULD be assigned a lifetime that gives it a reasonable opportunity to reach the originator. Like any bundle the node sources, it is subject to the node's local lifetime policy, which bounds the retention cost of responses even when a request asserts a very long lifetime. Within that bound, an echo service MAY set the response lifetime by reusing the request bundle's lifetime value, or by deriving it from the request bundle's observed transit time (its age on reception). A lifetime derived from observed transit time limits retention, but can underestimate the requirement of a return path slower than the forward path, and so benefits from a generous margin.
+: The response bundle SHOULD be assigned a lifetime that gives it a reasonable opportunity to reach the originator. Like any bundle the node sources, it is subject to the node's local lifetime policy, which bounds the retention cost of response bundles even when a request bundle asserts a very long lifetime. Within that bound, an echo service MAY set the response bundle's lifetime by reusing the request bundle's lifetime value, or by deriving it from the request bundle's observed transit time (its age on reception). A lifetime derived from observed transit time limits retention, but can underestimate the requirement of a return path slower than the forward path, and so benefits from a generous margin.
 
 Report-To:
-: If the request bundle requested status reports, an echo service SHOULD set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request and response are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.
+: If the request bundle requested status reports, an echo service SHOULD set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request bundle and response bundle are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.
 
 ### Bundle Processing Control Flags {#flags}
 
-An echo service does not copy the request bundle's control flags wholesale. The following per-flag requirements specify the response bundle's control flags; any flag not listed must not just be copied verbatim from the request bundle, but is set as for any bundle the node sources.
+An echo service does not copy the request bundle's control flags wholesale. The following per-flag requirements specify the response bundle's control flags; any flag not listed is set as for any bundle the node sources, rather than copied from the request bundle.
 
 "ADU is an administrative record":
-: MUST NOT be set. The response carries the reflected application payload, which is not an administrative record.
+: MUST NOT be set. The response is a copy of the request, which is not an administrative record ({{when-a-response-is-sent}}).
 
 "Bundle must not be fragmented":
-: MAY be copied from the request bundle.
+: SHOULD be copied from the request bundle, unless local policy requires otherwise. A client that sets this flag is typically measuring round-trip time or probing the largest bundle a path will carry ({{fragmentation}}), and either measurement is undermined if the response bundle is fragmented on the return path.
 
 "Acknowledgement by application is requested":
 : MUST NOT be set. The response does not solicit an application acknowledgement.
@@ -126,11 +136,11 @@ Status-report-request flags ("Request reporting of bundle reception", "Request r
 : MAY be set, typically by mirroring the request bundle's flags, so that an observer can follow both legs of the exchange. These take effect together with the report-to EID (see the Report-To field above).
 
 "Status time requested in reports":
-: MAY be set, typically by mirroring the request bundle's value when the echo service mirrors the status-report-request flags, so that reports for the response carry the time of the reported event whenever the requester asked for that detail.
+: MAY be set, typically by mirroring the request bundle's value when the echo service mirrors the status-report-request flags, so that reports for the response bundle carry the time of the reported event whenever the requester asked for that detail.
 
 ### Payload Block
 
-The response bundle MUST contain a payload block whose content is identical, byte for byte, to the payload block content of the request bundle. An echo service MUST NOT alter, truncate, reorder, or append to the payload. This reflected payload is the only content guaranteed to survive the round trip; it allows a client to verify round-trip integrity by comparing the returned payload with what it sent.
+The response, carried in the payload block of the response bundle, MUST be identical, byte for byte, to the request as delivered to the echo service; if the request bundle arrived as fragments, this is the request as reassembled by the BPA ({{!RFC9171, Section 5.9}}). An echo service MUST NOT alter, truncate, reorder, or append to the request in forming the response. Only the request is guaranteed to survive the round trip, which lets a client verify round-trip integrity by comparing the response with the request it sent.
 
 ### Extension Blocks {#extension-blocks}
 
@@ -138,7 +148,7 @@ An echo service is not obliged to reproduce any extension block from the request
 
 An echo service MAY include extension blocks in the response bundle — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec {{!RFC9172}} block — as determined by the normal outbound bundle processing and local security policy of its node.
 
-An echo service that copies an extension block from the request bundle into the response remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request is generally not meaningful.
+An echo service that copies an extension block from the request bundle into the response bundle remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request bundle is generally not meaningful.
 
 ## Client Considerations
 
@@ -146,17 +156,74 @@ While this specification focuses primarily on the echo service, certain requirem
 
 ### Session Disambiguation {#session-disambiguation}
 
-When multiple clients run concurrently on the same node, each session must be distinguishable so that responses are delivered to the correct client. Multiple concurrent clients on the same node MUST use distinct source endpoint identifiers. Per {{!RFC9171}}, each application instance registers with a unique endpoint ID, and the combination of source and destination provides session disambiguation at the bundle layer without requiring any session identifier in the payload.
+When multiple clients run concurrently on the same node, each session must be distinguishable so that responses are delivered to the correct client. Multiple concurrent clients on the same node MUST use distinct source endpoint identifiers. Per {{!RFC9171}}, each application instance registers with a unique endpoint ID, and the combination of source and destination provides session disambiguation at the bundle layer without requiring any session identifier in the request.
 
 ### Response Authenticity
 
-A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request to authenticate the response, because the request's BIB is not carried into the response (see {{extension-blocks}}). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec {{!RFC9172}} policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because the echo service returns the payload unchanged, a client can detect modified or spoofed responses by validating the returned payload against state it retained locally when sending the request; see {{payload-format}}.
+A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request bundle to authenticate the response, because that BIB is not carried into the response bundle (see {{extension-blocks}}). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec {{!RFC9172}} policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because each response is identical to its request, a client can detect modified or spoofed responses by validating each response against state it retained locally when sending the request; see {{payload-format}}.
 
 ### Fragmentation {#fragmentation}
 
-Diagnostic clients MAY set the "bundle must not be fragmented" flag in bundles sent to the echo service. Fragmentation complicates round-trip time measurement and payload verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the bundle either traverses the network intact or is dropped, providing cleaner diagnostic results.
+Diagnostic clients SHOULD set the "bundle must not be fragmented" flag in request bundles, unless they intend to exercise fragmentation itself. Fragmentation complicates round-trip time measurement and response verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the request bundle either traverses the network intact or is dropped, providing cleaner diagnostic results. An echo service normally copies the flag to the response bundle ({{flags}}), so the same holds for the return path.
 
-If a client needs to test path MTU, it can send bundles of increasing size with fragmentation disabled and observe which sizes succeed. This approach directly reveals the path's maximum bundle size rather than relying on fragmentation behavior.
+If a client needs to test path MTU, it can send request bundles of increasing size with fragmentation disabled and observe which sizes succeed. This approach directly reveals the path's maximum bundle size rather than relying on fragmentation behavior. Because the response bundle normally carries the flag too, a given size succeeds only if both the forward and return paths carry it intact, so the result reflects the more restrictive of the two.
+
+# Operational Considerations {#ops}
+
+An echo service is a diagnostic tool, and whether a given request should be answered depends on the network in which it operates: the same request can be a legitimate connectivity check in one deployment and reconnaissance or a reflection attempt in another. This document therefore does not enumerate the conditions under which an echo service responds. Instead, it requires that those conditions be under the control of the node operator, and describes the considerations an operator weighs.
+
+## Enabling and Restricting the Echo Service {#ops-policy}
+
+An implementation MUST provide a means for the operator to disable the echo service; to limit the responses it sends, both by restricting which requests it answers and by rate ({{rate-limiting}}); and, where the echo service propagates status-report settings onto response bundles ({{response-bundle}}), to disable that propagation. These means can be provided by the echo service itself, by the BPA through which requests are delivered to it, or by both. A request that the echo service declines to answer is consumed without a response ({{when-a-response-is-sent}}).
+
+Policy can be applied at different points and at different granularities, for example:
+
+- by the BPA before delivery, so that unwanted requests never reach the echo service;
+- by source node ID, or by a set of source EIDs (for example, expressed as EID patterns {{?I-D.ietf-dtn-eid-pattern}});
+- by the presence on the request bundle of a BPSec {{!RFC9172}} integrity block whose security source the node trusts;
+- by the node from which the request bundle was received, where the convergence layer or a Previous Node Block identifies it; or
+- by the echo service endpoint at which the request arrived.
+
+Control over whether the echo service propagates the request bundle's report-to EID and status-report-request flags onto the response bundle matters because propagation lets a requester direct status reports from every node on the return path to an EID of its choosing.
+
+Whether and how an operator applies these limits is a deployment decision. Answering every delivered request maximizes the diagnostic value of a well-known endpoint and simplifies interoperability testing, but exposes the node to the concerns described in {{security-considerations}}. In a network whose bundle sources are not otherwise authenticated, restricting the echo service to requests whose source is authenticated or otherwise trusted is particularly effective against reflection, which relies on forged sources.
+
+## Rate Limiting {#rate-limiting}
+
+In this document, rate limiting means declining to respond to some requests, as described in {{ops-policy}}, rather than delaying responses: a delayed response consumes storage at the echo service node, and to the client it is indistinguishable from a slow return path. An echo service sends no indication to the requester that a response was withheld, because any such indication would itself be a bundle directed at a possibly spoofed source.
+
+The limit, and how it is measured, are matters of local policy. A limit applied per source node ID bounds the traffic the echo service can direct at any one destination; a limit applied per previous node bounds the load any one neighbor can impose. Where the BPA, rather than the echo service, discards request bundles before delivery, it deletes them as specified in {{!RFC9171, Section 5.10}}; any deletion status report it generates (for example, with reason code "Traffic pared") is subject to the node's status-reporting policy and raises the same reflection concern.
+
+## Missing and Multiple Responses {#ops-missing}
+
+Because an echo service sends nothing when it declines a request, a client that receives fewer responses than it sent requests cannot tell, from the responses alone, whether a request or response was lost or expired in transit, whether a request was declined by policy or rate limiting, or whether no echo service is present at all. Loss figures reported by ping clients ({{ping-clients}}) therefore count unanswered requests, whatever the cause, not only path loss. Status reports can narrow the ambiguity where they are available: a delivery report for a request bundle with no corresponding response indicates that the request reached the echo service node, and that the response was then declined or lost on the return path.
+
+Conversely, a client can receive more than one response to a single request, in two different ways:
+
+- Distinct response bundles. Where a request is addressed to a non-singleton endpoint, each member that answers sends its own response in its own response bundle, with its own source and creation timestamp ({{ops-non-singleton}}). These are different bundles, so they are not removed by any duplicate suppression on the return path, and their sources identify the responders.
+- Copies of one response bundle. The network can replicate a response bundle on the return path. The copies share its source node ID and creation timestamp, and the client's BPA might or might not suppress them.
+
+Either way, every response is identical to its request, so a client matches responses to requests by content ({{payload-format}}). A ping client typically takes the round-trip time from the first response to arrive, counts the request as answered once, and reports any further responses separately. A client that can see the source node ID and creation timestamp of each response bundle can also tell distinct response bundles apart from copies of the same one.
+
+## Non-Singleton Endpoints {#ops-non-singleton}
+
+Every ipn-scheme EID identifies a singleton endpoint ({{!RFC9758, Section 5.1}}), but other EIDs, such as dtn-scheme EIDs whose demux begins with '~' ({{!RFC9171, Section 4.2.5.1.1}}), can identify endpoints with many members. If an echo service is registered in such an endpoint, a single request elicits a response from every member that receives it. Each echo service still emits at most one response, but the number of responses in the network scales with the membership of the endpoint, reintroducing the count amplification that {{reflection-and-amplification}} otherwise rules out.
+
+An echo service SHOULD NOT answer requests addressed to a non-singleton endpoint unless the operator has explicitly configured it to do so. When it does, the response bundle cannot be sourced from the non-singleton EID to which the request bundle was addressed, because the source of a bundle is a node ID ({{!RFC9171, Section 4.2.5.2}}). The echo service SHOULD instead use the EID of its node's administrative endpoint: for example `ipn:2.0` ({{!RFC9758, Section 5.7}}) or `dtn://node-name/` ({{!RFC9171, Section 4.2.5.1.1}}), preferably in the same URI scheme as the request's destination where the node has an administrative EID in that scheme. Every node is permanently registered in its administrative endpoint ({{!RFC9171, Section 4.2.5.2}}), so this choice needs no additional configuration; where the echo service runs as an application on a BPA that does not let applications source bundles from the administrative endpoint, the BPA can set the source on the echo service's behalf. This choice has three properties that a source shared by the members of the endpoint would lack:
+
+- It contains reflection. Whatever answers a response addresses it to the response's source. Were that source the group's EID, each such answer would be delivered to every member, and two echo groups induced to answer one another, for example by a request to one group forged with the other group's EID as its source, would multiply the traffic by the size of the group at every exchange. A group EID is not normally recognizable as an echo service endpoint, so the rule in {{when-a-response-is-sent}} would not stop this. An administrative endpoint is a single node that does not echo bundles, so any such exchange ends there.
+- It keeps response bundles distinct. A bundle is identified by its source node ID and creation timestamp. Members that share a source assign creation timestamps independently and, answering the same request at about the same time, can easily assign the same one; duplicate suppression, fragment reassembly, and status reporting on the return path would then conflate response bundles from different members.
+- It identifies the responder, which nothing else in the response bundle does: the response is identical to the request, and a Previous Node Block identifies only the last hop.
+
+A client that addresses a non-singleton endpoint should therefore expect zero, one, or many responses to each request, each sourced from the administrative endpoint of the responding node rather than from the EID the client addressed. Such a client matches responses to requests by content ({{payload-format}}), not by source.
+
+## Endpoint Configuration {#ops-endpoint-config}
+
+The well-known service number requested in {{iana-considerations}} is a default, not a requirement: as {{!RFC9758, Section 5.6}} describes, it lets a client sensibly assume where the service is operating unless configuration says otherwise. Existing deployments answer echo requests on a variety of service numbers. Implementations SHOULD therefore allow the operator to configure the endpoints at which the echo service is registered, and ping clients SHOULD allow the target endpoint to be specified in full.
+
+## Client Source Endpoints
+
+Ping clients need a distinct source endpoint for each concurrent session ({{session-disambiguation}}), usually for the lifetime of that session only. This document does not reserve service numbers for such transient use; a BPA that supports transient registrations can allocate them from a Private Use range of {{!RFC9758}}. Because responses can arrive long after a session has ended, it is good practice for a BPA not to reassign a recently released source endpoint to a different application promptly, and for a client to discard responses that do not match a request it sent.
 
 # Security Considerations
 
@@ -164,58 +231,68 @@ This section discusses security issues relevant to the echo service and potentia
 
 ## Reflection and Amplification
 
-Like any echo or reflection service, an echo service can be abused to direct traffic at a victim. Because the source of a bundle is not authenticated by default, an attacker can send request bundles whose source is set to a victim's endpoint, causing the echo service to send response bundles to that victim. The echo service thereby launders the attacker's traffic and conceals its origin.
+Like any echo or reflection service, an echo service can be abused to direct traffic at a victim. Because the source of a bundle is not authenticated by default, an attacker can send requests whose source is set to a victim's endpoint, causing the echo service to send responses to that victim. The echo service thereby launders the attacker's traffic and conceals its origin.
 
-The volume amplification factor is close to one: an echo service returns the payload unchanged, and the requirement to emit at most one response bundle per request bundle (see {{response-bundle}}) prevents count amplification. The principal risk is therefore reflection toward, and concentration of traffic on, a chosen victim rather than bandwidth amplification. To mitigate this risk, implementations SHOULD:
+The volume amplification factor is close to one: each response is identical to its request, and the requirement to emit at most one response per request (see {{response-bundle}}) prevents count amplification. The principal risk is therefore reflection toward, and concentration of traffic on, a chosen victim rather than bandwidth amplification. Operators can mitigate this risk by:
 
-- Rate-limit response bundles, particularly to or from previously unseen endpoints
-- Monitor for unusual traffic patterns that might indicate abuse
-- Consider requiring authentication via Bundle Protocol Security {{!RFC9172}} in sensitive deployments
+- Rate-limiting responses, particularly to or from previously unseen endpoints ({{rate-limiting}})
+- Restricting responses to authenticated or otherwise trusted requesters, for example using Bundle Protocol Security {{!RFC9172}} ({{ops-policy}})
+- Monitoring for unusual traffic patterns that might indicate abuse
 
-An echo service that propagates the request bundle's report-to EID and status report requests onto the response (see {{response-bundle}}) extends this reflection surface to the status reports generated for the response; the same mitigations apply.
+An echo service that propagates the request bundle's report-to EID and status-report-request flags onto the response bundle (see {{response-bundle}}) extends this reflection surface to the status reports generated for the response bundle; the same mitigations apply, and an operator can also disable that propagation ({{ops-policy}}).
+
+Registering an echo service in a non-singleton endpoint reintroduces count amplification, since every member that receives a request answers it; see {{ops-non-singleton}}.
+
+Because an echo service originates nothing but responses ({{when-a-response-is-sent}}), a bundle whose source is an echo service endpoint is only ever a response bundle. A receiver can use this to recognize reflected traffic: a bundle from an echo service endpoint that does not correspond to a request the destination application sent, for example one delivered to an application that is not a ping client, indicates that the destination's endpoint has been forged as the source of requests elsewhere. An application or BPA MAY discard such bundles, and a BPA MAY apply rate limits or other policy to bundles whose source is a well-known echo service endpoint. Echo services are themselves the most important such receiver, since answering a response would create a loop between two echo services; {{when-a-response-is-sent}} therefore forbids it.
+
+Responses to requests addressed to non-singleton endpoints are sourced from the responding node's administrative endpoint instead ({{ops-non-singleton}}), so an echo service cannot recognize them by their source. This does not reopen the loop: if such a response reaches another echo service, because the request's source was forged as that echo service's endpoint, the second echo service answers it, but its response is addressed to the administrative endpoint, which does not echo bundles, and the exchange ends there.
+
+Source EIDs are not authenticated by default, so these checks help discard reflected traffic but do not authenticate genuine responses; see {{response-authenticity}}.
 
 ## Information Disclosure
 
 Echo responses inherently confirm the existence and reachability of the echo service endpoint. Additionally, round-trip time measurements might reveal information about network topology, path characteristics, and store-and-forward delays that could be useful to an adversary mapping a network.
 
-In sensitive environments where this information disclosure is a concern, operators MAY:
+In sensitive environments where this information disclosure is a concern, operators can:
 
-- Restrict echo service access to authenticated endpoints using BPSec
-- Disable the echo service entirely on nodes where diagnostics are not required
+- Restrict echo service access to authenticated endpoints using BPSec ({{ops-policy}})
+- Disable the echo service entirely on nodes where diagnostics are not required ({{ops-policy}})
 - Deploy the echo service only on designated diagnostic nodes rather than throughout the network
 
 ## Resource Exhaustion
 
-An attacker could attempt to exhaust echo service resources by sending a large volume of bundles or bundles with very large payloads. Since the echo service must construct and transmit a response bundle for each request, this creates both memory and bandwidth pressure. Implementations SHOULD:
+An attacker could attempt to exhaust echo service resources by sending a large volume of requests or very large requests. Since the echo service must construct and transmit a response for each request, this creates both memory and bandwidth pressure. The following protections are RECOMMENDED:
 
-- Limit the maximum payload size accepted for reflection
-- Implement rate limiting on both connections and bundle processing
-- Monitor resource usage and reject or delay bundle processing when under stress
+- Limiting the maximum size of request accepted
+- Limiting the rate of requests answered ({{rate-limiting}})
+- Monitoring resource usage, and declining requests when under stress
+
+These protections need not be implemented by the echo service itself. Where the echo service runs as an application on a BPA, the BPA can provide them before requests are delivered, for example by limiting the size of bundles it accepts, the rate at which bundles are delivered to the echo service endpoint, or the storage allotted to such bundles. What matters is that the deployment as a whole provides them, under the operator's control ({{ops-policy}}).
 
 # IANA Considerations
 
 ## Well-Known Service Registration
 
-This document requests IANA to register the following entry in the "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry established by {{!RFC9758}}:
+This document requests IANA to register the following entry in the "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry established by {{!RFC9758}}, assigning the next available value in the Standards Action range (128-255):
 
 | Value | Description  | Reference       |
 |-------|--------------|-----------------|
-| 128   | Echo Service | (this document) |
+| TBD1  | Echo Service | (this document) |
 {: #iana-echo-service align="left" title="Echo Service Registration"}
 
-For the IPN scheme, the service number is appended to the node number; for example, `ipn:2.128` is the echo service on node number 2.
+RFC Editor: please replace TBD1 throughout this document with the value assigned by IANA, and remove this note.
 
-Note: Existing implementations do not agree on a service number for echo. Several use 7 by convention, mirroring the well-known UDP port for the Echo Protocol {{?RFC862}}, while others use different values (for example, 2047). All of these lie within ranges designated Private Use by {{!RFC9758}} and so cannot be reserved. This document requests service number 128, the lowest value in the Standards Action range, to provide a single registered value. Implementations MAY continue to support service number 7, or other values, for backwards compatibility.
+Note: Existing implementations do not agree on a service number for echo. Several use 7 by convention, mirroring the well-known UDP port for the Echo Protocol {{?RFC862}}, while others use different values (for example, 2047). All of these lie within ranges designated Private Use by {{!RFC9758}} and so cannot be reserved. This document requests a value from the Standards Action range to provide a single registered value; see also {{ops-endpoint-config}}.
 
 --- back
 
 # Ping Clients
 
-This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the body of this document defines the echo service behaviour, effective ping clients require careful attention to timing, session management, and payload design.
+This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the body of this document defines the echo service behavior, effective ping clients require careful attention to timing, session management, and request design.
 
 ## Round-Trip Time Calculation {#rtt-calculation}
 
-Accurate round-trip time (RTT) measurement is the primary purpose of most ping implementations. Ping clients should calculate RTT using locally stored timestamps rather than timestamps embedded in the payload:
+Accurate round-trip time (RTT) measurement is the primary purpose of most ping implementations. Ping clients should calculate RTT using locally stored timestamps rather than timestamps embedded in the request:
 
 ~~~ pseudocode
 RTT = response_receive_time - request_sent_times[sequence_number]
@@ -224,7 +301,7 @@ RTT = response_receive_time - request_sent_times[sequence_number]
 This approach offers several advantages:
 
 - Requires no clock synchronization between nodes
-- Works correctly even if the payload is corrupted
+- Works correctly even if the response is corrupted
 - Avoids serialization overhead in the timing path
 
 The client should maintain a map from sequence number to sent timestamp. It should populate the map when each request is transmitted and consult it when each response arrives. Entries should be removed after a configurable timeout to prevent unbounded memory growth.
@@ -233,38 +310,40 @@ The client should maintain a map from sequence number to sent timestamp. It shou
 
 As required by {{session-disambiguation}}, multiple concurrent clients on the same node use distinct source endpoint identifiers.
 
-For example, if two concurrent ping sessions on node `ipn:1.0` target `ipn:2.128`, they should use distinct source endpoints such as `ipn:1.1001` and `ipn:1.1002`. The bundle protocol agent will then route responses back to the correct session based on the destination of the response bundle.
+For example, if two concurrent ping sessions on node `ipn:1.0` target `ipn:2.TBD1`, they should use distinct source endpoints such as `ipn:1.1001` and `ipn:1.1002`. The BPA then delivers each response to the correct session based on the destination of its response bundle.
 
-A ping client must not use a well-known echo service endpoint (for example, service number 128) as its own source endpoint. Per {{when-a-response-is-sent}}, services other than the echo service do not source bundles from an echo service endpoint; a request so sourced would direct the response to the local echo service rather than to the client.
+A ping client must not use a well-known echo service endpoint (for example, service number TBD1) as its own source endpoint. Per {{when-a-response-is-sent}}, services other than the echo service do not source bundles from an echo service endpoint, and an echo service does not answer a request so sourced.
 
-## Payload Format {#payload-format}
+## Request Format {#payload-format}
 
-The echo service returns the payload unchanged, so its format is entirely at the discretion of the ping client; the service neither parses nor interprets it. This document defines no payload format.
+Because each response is identical to its request, the format of requests is entirely at the discretion of the ping client; the echo service neither parses nor interprets them. This document defines no request format.
 
-A client need only place a sequence number in the payload, so that it can match each response to the request that produced it. Everything else a client needs is kept in local state, keyed by that sequence number:
+A client need only place a sequence number in each request, so that it can match each response to the request that produced it. Everything else a client needs is kept in local state, keyed by that sequence number:
 
-- the time the request was sent, used for the round-trip time calculation of {{rtt-calculation}} (timestamps need not be carried in the payload); and
-- optionally, whatever lets the client confirm that a response is an unmodified echo of its own request — for example, by retaining the payload it sent and comparing it against the payload returned.
+- the time the request was sent, used for the round-trip time calculation of {{rtt-calculation}} (timestamps need not be carried in the request); and
+- optionally, whatever lets the client confirm that a response is an unmodified echo of its own request — for example, by retaining each request it sent and comparing it against the response.
 
-Because the whole payload returns unchanged, a client can match and validate responses with no agreed wire format and without relying on Bundle Protocol Security in the network. Authenticating the responder itself is a separate matter, addressed by the echo service node's own BPSec policy on the response.
+Alongside the sequence number, a client should include a value that it does not reuse across sessions and that an off-path attacker cannot predict, such as a random nonce. This lets the client reject responses belonging to an earlier session that used the same source endpoint, and responses forged by an attacker able to guess sequence numbers; see also {{ops-missing}}.
 
-A client may also pad the payload with additional bytes to reach a chosen total bundle size. Because the echo service reflects the payload unchanged, padding the request is a simple and effective way to probe the largest bundle a path will carry; see {{fragmentation}}.
+Because the whole request returns unchanged, a client can match and validate responses with no agreed wire format and without relying on Bundle Protocol Security in the network. Authenticating the responder itself is a separate matter, addressed by the echo service node's own BPSec policy on the response bundle ({{response-authenticity}}).
+
+A client may also pad the request with additional bytes to reach a chosen request bundle size. Because the response is identical to the request, padding the request is a simple and effective way to probe the largest bundle a path will carry; see {{fragmentation}}.
 
 ## Interpreting Status Reports {#status-reports}
 
 A client may request status reports on its request bundles in the usual way, by setting the relevant bundle processing control flags and a report-to EID. Such reports concern the request bundle's own progress toward the echo service and carry the client's endpoint as the source EID of the subject bundle.
 
-By setting status-report-request flags and a report-to EID on its request, a ping client asks to observe the exchange end-to-end. An echo service can honour this by propagating those settings onto the response bundle (see {{response-bundle}}). Where it does, the designated observer receives status reports for both legs of the exchange and can attribute each report to its leg from the source EID of the report's subject bundle: the client's endpoint for the request, and the echo service endpoint for the response. Because not every echo service does so, and status reporting is optional in any case, a client should not rely on receiving reports for the return leg. Note also that a client can tie a request-leg report to a specific request, because it knows that bundle's identifier, but cannot in general tie a response-leg report to a specific request: the response's creation timestamp is assigned by the echo service and is not predictable by the client. Round-trip completion for a given request is instead confirmed by the reflected payload, which carries the sequence number (see {{rtt-calculation}}).
+By setting status-report-request flags and a report-to EID on its request bundle, a ping client asks to observe the exchange end-to-end. An echo service can honor this by propagating those settings onto the response bundle (see {{response-bundle}}). Where it does, the designated observer receives status reports for both legs of the exchange and can attribute each report to its leg from the source EID of the report's subject bundle: the client's endpoint for the request bundle, and for the response bundle the echo service endpoint or, where the request was addressed to a non-singleton endpoint, the responding node's administrative endpoint (see {{ops-non-singleton}}). Because not every echo service does so, and status reporting is optional in any case, a client should not rely on receiving reports for the return leg. Note also that a client can tie a request-leg report to a specific request, because it knows that bundle's identifier, but cannot in general tie a response-leg report to a specific request: the response bundle's creation timestamp is assigned by the echo service and is not predictable by the client. Round-trip completion for a given request is instead confirmed by the response, which carries the sequence number (see {{rtt-calculation}}).
 
-Status reports on the request bundle can still aid diagnosis. For example, a "Forwarded" report with no echo response suggests the request was lost between an intermediate node and the echo service. Note that status reporting is optional per {{!RFC9171}} and many BPA implementations disable it by default; clients should not rely on receiving status reports for correct operation.
+Status reports on the request bundle can still aid diagnosis. For example, a "Forwarded" report with no corresponding response suggests the request bundle was lost between an intermediate node and the echo service. Note that status reporting is optional per {{!RFC9171}} and many BPA implementations disable it by default; clients should not rely on receiving status reports for correct operation.
 
 ## Statistics
 
 Ping clients should track and report standard statistics consistent with traditional IP ping:
 
-- Bundles transmitted
+- Requests transmitted
 - Responses received
-- Packet loss percentage
+- Loss percentage
 - RTT minimum, average, maximum, and standard deviation
 
 These statistics provide a quick assessment of network health and help identify routing problems, congestion, or intermittent connectivity.
@@ -272,7 +351,7 @@ These statistics provide a quick assessment of network health and help identify 
 Example output format following ICMP ping conventions:
 
 ~~~ text
---- ipn:2.128 ping statistics ---
-5 bundles transmitted, 4 received, 20% loss
+--- ipn:2.TBD1 ping statistics ---
+5 requests transmitted, 4 received, 20% loss
 rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
 ~~~
