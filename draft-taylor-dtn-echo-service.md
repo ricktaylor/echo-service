@@ -61,16 +61,16 @@ Echo Service:
 : A Bundle Protocol service that returns each request to its originator as a response.
 
 Request:
-: An application data unit (ADU) sent to an echo service for return to its originator.
+: An application data unit (ADU) delivered ({{!RFC9171, Section 3.1}}) to an echo service at one of its echo service endpoints.
 
 Request Bundle:
-: The bundle that carries a request as its payload, received by an echo service at one of its echo service endpoints.
+: The bundle that carries a request as its payload, addressed to an echo service endpoint.
 
 Response:
 : The ADU that an echo service sends in reply to a request: a byte-for-byte copy of that request ({{payload-block}}).
 
 Response Bundle:
-: The bundle that carries a response as its payload; {{response-bundle}} defines its content.
+: The new bundle, sourced by the echo service node, that carries a response as its payload; {{response-bundle}} defines its content.
 
 Requests and responses are the units of the echo service's behavior; request bundles and response bundles are named where the content or processing of the bundle itself matters. The source or destination of a request or response is that of the bundle that carries it.
 
@@ -82,11 +82,17 @@ An echo service registers to receive requests at one or more endpoint identifier
 
 An echo service SHOULD support the well-known endpoint, so that clients can reach it without out-of-band configuration. It MAY also support private or alternative endpoints, which clients must learn of by other means.
 
+## Request Delivery {#request-delivery}
+
+A request bundle is received and processed by the echo service node's BPA like any other bundle destined for one of the node's endpoints: the BPA processes its extension blocks, applies local security policy, reassembles it if it arrived as fragments, and delivers the request to the echo service ({{!RFC9171, Section 5.7}}).
+
+The echo service therefore receives the request, together with delivery metadata from the request bundle ({{!RFC9171, Section 3.1}}): its source node ID and destination EID, and, as far as the BPA makes them available, its bundle processing control flags, lifetime, age, and report-to EID. The echo service uses this metadata only to decide whether to respond ({{when-a-response-is-sent}}) and to set the primary block of the response bundle ({{primary-block}}). It has no other use for the request bundle, and in particular none for its extension blocks.
+
 ## The Response Bundle {#response-bundle}
 
-Upon receiving a request at one of its echo service endpoints, an echo service generates a response as specified in this section. When a response is sent ({{when-a-response-is-sent}}), the echo service MUST submit to its BPA, for transmission, exactly one response bundle conforming to these rules, and MUST NOT emit more than one response per request.
+When a request is delivered to an echo service, the echo service responds as specified in this section. When it responds ({{when-a-response-is-sent}}), it MUST request transmission of exactly one response bundle conforming to these rules ({{!RFC9171, Section 5.2}}), and MUST NOT emit more than one response per request.
 
-These rules constrain only the content of the response bundle, not the mechanism by which it is produced: an implementation MAY construct a new bundle or MAY derive the response bundle from the request bundle internally, provided the emitted response bundle conforms. Aside from the constraints in this section, the response bundle is an ordinary bundle, constructed and processed under {{!RFC9171}} (and, where security is applied, {{!RFC9172}}) like any other bundle the node sources; this document does not restate those rules.
+The response bundle is a new bundle, sourced by the echo service node, whether the echo service runs as an application or is built into the BPA. It is constructed and processed under {{!RFC9171}} (and, where security is applied, {{!RFC9172}}) like any other bundle the node sources, and this document does not restate those rules. The rules in this section constrain only what the echo service supplies for that new bundle: the values of certain primary block fields, which it takes from the delivery metadata of the request ({{request-delivery}}), and its payload, which is the response.
 
 ### When a Response Is Sent {#when-a-response-is-sent}
 
@@ -100,9 +106,9 @@ An echo service MAY also decline to respond to a request as a matter of local po
 
 An echo service MUST NOT generate bundles other than response bundles. Other services at the node SHOULD NOT use an echo service endpoint as the source of bundles they originate.
 
-### Primary Block
+### Primary Block {#primary-block}
 
-The primary block of the response bundle MUST be set as follows.
+The primary block of the response bundle MUST be set as follows. Where these rules take a value from the request bundle, it is from the delivery metadata ({{request-delivery}}); this is the only respect in which the response bundle depends on the request bundle.
 
 Destination:
 : MUST be set to the source node ID of the request bundle.
@@ -119,9 +125,9 @@ Lifetime:
 Report-To:
 : If the request bundle requested status reports, an echo service SHOULD set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request bundle and response bundle are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.
 
-### Bundle Processing Control Flags {#flags}
+#### Bundle Processing Control Flags {#flags}
 
-An echo service does not copy the request bundle's control flags wholesale. The following per-flag requirements specify the response bundle's control flags; any flag not listed is set as for any bundle the node sources, rather than copied from the request bundle.
+The response bundle's bundle processing control flags are set as for any bundle the node sources, except as follows.
 
 "ADU is an administrative record":
 : MUST NOT be set. The response is a copy of the request, which is not an administrative record ({{when-a-response-is-sent}}).
@@ -140,15 +146,11 @@ Status-report-request flags ("Request reporting of bundle reception", "Request r
 
 ### Payload Block
 
-The response, carried in the payload block of the response bundle, MUST be identical, byte for byte, to the request as delivered to the echo service; if the request bundle arrived as fragments, this is the request as reassembled by the BPA ({{!RFC9171, Section 5.9}}). An echo service MUST NOT alter, truncate, reorder, or append to the request in forming the response. Only the request is guaranteed to survive the round trip, which lets a client verify round-trip integrity by comparing the response with the request it sent.
+The response, carried in the payload block of the response bundle, MUST be identical, byte for byte, to the request as delivered to the echo service ({{request-delivery}}). An echo service MUST NOT alter, truncate, reorder, or append to the request in forming the response. Only the request is guaranteed to survive the round trip, which lets a client verify round-trip integrity by comparing the response with the request it sent.
 
 ### Extension Blocks {#extension-blocks}
 
-An echo service is not obliged to reproduce any extension block from the request bundle in the response bundle.
-
-An echo service MAY include extension blocks in the response bundle — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec {{!RFC9172}} block — as determined by the normal outbound bundle processing and local security policy of its node.
-
-An echo service that copies an extension block from the request bundle into the response bundle remains bound by that block's own specification. In particular, it cannot assume the security role of a BPSec block's original security source, so copying BPSec blocks from the request bundle is generally not meaningful.
+The response bundle carries the extension blocks that the node's normal outbound bundle processing and local security policy add to any bundle it sources — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec {{!RFC9172}} block — and no others. The extension blocks of the request bundle are processed by the BPA on reception and are not part of what is delivered to the echo service ({{request-delivery}}); none of them is carried into the response bundle.
 
 ## Client Considerations
 
@@ -160,7 +162,7 @@ When multiple clients run concurrently on the same node, each session must be di
 
 ### Response Authenticity
 
-A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request bundle to authenticate the response, because that BIB is not carried into the response bundle (see {{extension-blocks}}). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec {{!RFC9172}} policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because each response is identical to its request, a client can detect modified or spoofed responses by validating each response against state it retained locally when sending the request; see {{payload-format}}.
+A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request bundle to authenticate the response, because the response bundle is a new bundle and carries no extension block from the request bundle (see {{extension-blocks}}). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec {{!RFC9172}} policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because each response is identical to its request, a client can detect modified or spoofed responses by validating each response against state it retained locally when sending the request; see {{payload-format}}.
 
 ### Fragmentation {#fragmentation}
 
@@ -181,6 +183,7 @@ Policy can be applied at different points and at different granularities, for ex
 - by the BPA before delivery, so that unwanted requests never reach the echo service;
 - by source node ID, or by a set of source EIDs (for example, expressed as EID patterns {{?I-D.ietf-dtn-eid-pattern}});
 - by the presence on the request bundle of a BPSec {{!RFC9172}} integrity block whose security source the node trusts;
+- by the extension blocks present on the request bundle, for example declining requests that carry blocks of types the node does not expect;
 - by the node from which the request bundle was received, where the convergence layer or a Previous Node Block identifies it; or
 - by the echo service endpoint at which the request arrived.
 
@@ -253,9 +256,11 @@ Source EIDs are not authenticated by default, so these checks help discard refle
 
 Echo responses inherently confirm the existence and reachability of the echo service endpoint. Additionally, round-trip time measurements might reveal information about network topology, path characteristics, and store-and-forward delays that could be useful to an adversary mapping a network.
 
+The presence or absence of a response can also be used to probe how nodes on the forward path process particular bundles. A requester controls the extension blocks on a request bundle and their block processing control flags: for example, it can attach a block marked "Delete bundle if block can't be processed" ({{!RFC9171, Section 4.2.4}}), malformed blocks, or BPSec blocks with particular security contexts. Whether a response returns then reveals whether every node on the path accepted and forwarded such a bundle, and so which block types those nodes support, how they apply their security policy, and potentially which implementations they run. A report-to EID of the requester's choosing, together with "Transmit status report if block can't be processed", can additionally reveal which node rejected the bundle. Such probing is also a legitimate diagnostic, so this document does not prohibit it; it is limited on the return path because the response bundle is a new bundle, carrying none of the request bundle's extension blocks ({{extension-blocks}}).
+
 In sensitive environments where this information disclosure is a concern, operators can:
 
-- Restrict echo service access to authenticated endpoints using BPSec ({{ops-policy}})
+- Restrict echo service access to authenticated endpoints using BPSec, or decline requests carrying unexpected extension blocks ({{ops-policy}})
 - Disable the echo service entirely on nodes where diagnostics are not required ({{ops-policy}})
 - Deploy the echo service only on designated diagnostic nodes rather than throughout the network
 
