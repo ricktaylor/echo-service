@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>BPv7 Echo Service</title>
+<meta content="Rick Taylor" name="author">
+<meta content="
+       This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. An echo service receives bundles at a well-known endpoint and replies to each with a response bundle that returns the payload to the originator. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number for the echo service. 
+    " name="description">
+<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="DTN" name="keyword">
+<meta content="BPv7" name="keyword">
+<meta content="Bundle Protocol" name="keyword">
+<meta content="Echo" name="keyword">
+<meta content="draft-ietf-dtn-echo-service-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.1
+    Python 3.14.8
+    ConfigArgParse 1.8.0
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.13.4
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.9.2
+-->
+<link href="draft-ietf-dtn-echo-service.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">BPEcho</td>
+<td class="right">October 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Taylor</td>
+<td class="center">Expires 24 April 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Delay/Disruption Tolerant Networking</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-ietf-dtn-echo-service-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-10-21" class="published">21 October 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-04-24">24 April 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">R. Taylor</div>
+<div class="org">Aalyria Technologies</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">BPv7 Echo Service</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies an echo service for Bundle Protocol Version 7 (BPv7) networks. An echo service receives bundles at a well-known endpoint and replies to each with a response bundle that returns the payload to the originator. This enables round-trip time measurement and end-to-end connectivity verification in Delay-Tolerant Networks. This document requests IANA allocation of a well-known IPN service number for the echo service.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://ricktaylor.github.io/echo-service/draft-ietf-dtn-echo-service.html">https://ricktaylor.github.io/echo-service/draft-ietf-dtn-echo-service.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-ietf-dtn-echo-service/">https://datatracker.ietf.org/doc/draft-ietf-dtn-echo-service/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">
+        Discussion of this document takes place on the
+        Delay/Disruption Tolerant Networking Working Group mailing list (<span><a href="mailto:dtn@ietf.org">mailto:dtn@ietf.org</a></span>),
+        which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/dtn/">https://mailarchive.ietf.org/arch/browse/dtn/</a></span>.
+        Subscribe at <span><a href="https://www.ietf.org/mailman/listinfo/dtn/">https://www.ietf.org/mailman/listinfo/dtn/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/ricktaylor/echo-service">https://github.com/ricktaylor/echo-service</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 24 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-terminology" class="internal xref">Conventions and Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-echo-service-specification" class="internal xref">Echo Service Specification</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-service-endpoint" class="internal xref">Service Endpoint</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-request-delivery" class="internal xref">Request Delivery</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-the-response-bundle" class="internal xref">The Response Bundle</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
+                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-when-a-response-is-sent" class="internal xref">When a Response Is Sent</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
+                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-primary-block" class="internal xref">Primary Block</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.3">
+                    <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-payload-block" class="internal xref">Payload Block</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.4">
+                    <p id="section-toc.1-1.3.2.3.2.4.1"><a href="#section-3.3.4" class="auto internal xref">3.3.4</a>.  <a href="#name-extension-blocks" class="internal xref">Extension Blocks</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-client-considerations" class="internal xref">Client Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-session-disambiguation" class="internal xref">Session Disambiguation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.2">
+                    <p id="section-toc.1-1.3.2.4.2.2.1"><a href="#section-3.4.2" class="auto internal xref">3.4.2</a>.  <a href="#name-response-authenticity" class="internal xref">Response Authenticity</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.3">
+                    <p id="section-toc.1-1.3.2.4.2.3.1"><a href="#section-3.4.3" class="auto internal xref">3.4.3</a>.  <a href="#name-fragmentation" class="internal xref">Fragmentation</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-enabling-and-restricting-th" class="internal xref">Enabling and Restricting the Echo Service</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-rate-limiting" class="internal xref">Rate Limiting</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-missing-and-multiple-respon" class="internal xref">Missing and Multiple Responses</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-non-singleton-endpoints" class="internal xref">Non-Singleton Endpoints</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-endpoint-configuration" class="internal xref">Endpoint Configuration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-client-source-endpoints" class="internal xref">Client Source Endpoints</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-reflection-and-amplificatio" class="internal xref">Reflection and Amplification</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-information-disclosure" class="internal xref">Information Disclosure</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-resource-exhaustion" class="internal xref">Resource Exhaustion</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-well-known-service-registra" class="internal xref">Well-Known Service Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-ping-clients" class="internal xref">Ping Clients</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-round-trip-time-calculation" class="internal xref">Round-Trip Time Calculation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-endpoint-selection" class="internal xref">Endpoint Selection</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-request-format" class="internal xref">Request Format</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-interpreting-status-reports" class="internal xref">Interpreting Status Reports</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
+                <p id="section-toc.1-1.8.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-path-probing" class="internal xref">Path Probing</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5.2.1">
+                    <p id="section-toc.1-1.8.2.5.2.1.1"><a href="#appendix-A.5.1" class="auto internal xref">A.5.1</a>.  <a href="#name-extension-block-probing" class="internal xref">Extension Block Probing</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5.2.2">
+                    <p id="section-toc.1-1.8.2.5.2.2.1"><a href="#appendix-A.5.2" class="auto internal xref">A.5.2</a>.  <a href="#name-bundle-size-probing" class="internal xref">Bundle Size Probing</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
+                <p id="section-toc.1-1.8.2.6.1"><a href="#appendix-A.6" class="auto internal xref">A.6</a>.  <a href="#name-statistics" class="internal xref">Statistics</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">Delay-Tolerant Networks (DTNs) present unique challenges for network diagnostics. Unlike traditional IP networks where ICMP Echo (ping) provides immediate feedback, DTN bundles might traverse store-and-forward paths with significant delays. Nevertheless, the ability to verify end-to-end connectivity and measure round-trip time remains essential for network operators.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document specifies an echo service for Bundle Protocol Version 7 <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>. An echo service receives bundles at a well-known endpoint and replies to each with a single response bundle that returns the payload to the originator.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">The echo service is intentionally simple: it does not interpret requests and performs no special processing beyond returning each one to its originator. Defining the response bundle as a wire contract rather than an internal mechanism lets independent implementations interoperate regardless of whether the echo service is built into the Bundle Protocol Agent (BPA) or runs as an ordinary application. A standardized echo service enables diagnostic tools such as ping clients to operate across heterogeneous DTN deployments.<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-terminology">
+<section id="section-2">
+      <h2 id="name-conventions-and-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-terminology" class="section-name selfRef">Conventions and Terminology</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses terminology from the Bundle Protocol Version 7 specification <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Echo Service:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">A Bundle Protocol service that returns each request to its originator as a response.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.3">Request:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.4">
+          <p id="section-2-3.4.1">An application data unit (ADU) delivered (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-3.1" class="relref">Section 3.1</a></span>) to an echo service at one of its echo service endpoints.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.5">Request Bundle:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.6">
+          <p id="section-2-3.6.1">The bundle that carries a request as its payload, addressed to an echo service endpoint.<a href="#section-2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.7">Response:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.8">
+          <p id="section-2-3.8.1">The ADU that an echo service sends in reply to a request: a byte-for-byte copy of that request (<a href="#payload-block" class="auto internal xref">Section 3.3.3</a>).<a href="#section-2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-3.9">Response Bundle:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.10">
+          <p id="section-2-3.10.1">The new bundle, sourced by the echo service node, that carries a response as its payload; <a href="#response-bundle" class="auto internal xref">Section 3.3</a> defines its content.<a href="#section-2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-2-4">Requests and responses are the units of the echo service's behavior; request bundles and response bundles are named where the content or processing of the bundle itself matters. The source or destination of a request or response is that of the bundle that carries it.<a href="#section-2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="echo-service-specification">
+<section id="section-3">
+      <h2 id="name-echo-service-specification">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-echo-service-specification" class="section-name selfRef">Echo Service Specification</a>
+      </h2>
+<div id="service-endpoint">
+<section id="section-3.1">
+        <h3 id="name-service-endpoint">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-service-endpoint" class="section-name selfRef">Service Endpoint</a>
+        </h3>
+<p id="section-3.1-1">An echo service registers to receive requests at one or more endpoint identifiers. The well-known endpoint is ipn-scheme service number TBD1 (<a href="#iana-considerations" class="auto internal xref">Section 6</a>) on any node; for example, <code>ipn:2.TBD1</code> represents the echo service on node number 2. Implementations <span class="bcp14">MAY</span> also support service number 7 for backwards compatibility with existing deployments; service number 7 is in the Private Use range per <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and cannot be reserved.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">An echo service <span class="bcp14">SHOULD</span> support the well-known endpoint, so that clients can reach it without out-of-band configuration. It <span class="bcp14">MAY</span> also support private or alternative endpoints, which clients must learn of by other means.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="request-delivery">
+<section id="section-3.2">
+        <h3 id="name-request-delivery">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-request-delivery" class="section-name selfRef">Request Delivery</a>
+        </h3>
+<p id="section-3.2-1">A request bundle is received and processed by the echo service node's BPA like any other bundle destined for one of the node's endpoints: the BPA processes its extension blocks, applies local security policy, reassembles it if it arrived as fragments, and delivers the request to the echo service (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-5.7" class="relref">Section 5.7</a></span>).<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The echo service therefore receives the request, together with delivery metadata from the request bundle (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-3.1" class="relref">Section 3.1</a></span>): its source node ID and destination EID, and, as far as the BPA makes them available, its bundle processing control flags, lifetime, age, and report-to EID. The echo service uses this metadata only to decide whether to respond (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>) and to set the primary block of the response bundle (<a href="#primary-block" class="auto internal xref">Section 3.3.2</a>). It has no other use for the request bundle, and in particular none for its extension blocks.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="response-bundle">
+<section id="section-3.3">
+        <h3 id="name-the-response-bundle">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-the-response-bundle" class="section-name selfRef">The Response Bundle</a>
+        </h3>
+<p id="section-3.3-1">When a request is delivered to an echo service, the echo service responds as specified in this section. When it responds (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>), it <span class="bcp14">MUST</span> request transmission of exactly one response bundle conforming to these rules (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-5.2" class="relref">Section 5.2</a></span>), and <span class="bcp14">MUST NOT</span> emit more than one response per request.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">The response bundle is a new bundle, sourced by the echo service node, whether the echo service runs as an application or is built into the BPA. It is constructed and processed under <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> (and, where security is applied, <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span>) like any other bundle the node sources, and this document does not restate those rules. The rules in this section constrain only what the echo service supplies for that new bundle: the values of certain primary block fields, which it takes from the delivery metadata of the request (<a href="#request-delivery" class="auto internal xref">Section 3.2</a>), and its payload, which is the response.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<div id="when-a-response-is-sent">
+<section id="section-3.3.1">
+          <h4 id="name-when-a-response-is-sent">
+<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-when-a-response-is-sent" class="section-name selfRef">When a Response Is Sent</a>
+          </h4>
+<p id="section-3.3.1-1">An echo service <span class="bcp14">MUST NOT</span> respond to a request whose source is the null endpoint ID, as no return path exists (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.3" class="relref">Section 4.2.3</a></span>).<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-2">An echo service <span class="bcp14">MUST NOT</span> respond to a request that is an administrative record (that is, when the request bundle's "ADU is an administrative record" flag is set), to avoid reflecting status reports and the bundle loops that could result.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">An echo service <span class="bcp14">MUST NOT</span> respond to a request whose source is an echo service endpoint: an ipn-scheme EID with the well-known echo service number (<a href="#iana-considerations" class="auto internal xref">Section 6</a>), or an EID that the echo service is configured to recognize as an echo service endpoint (for example, service number 7 where legacy echo services are deployed). Because only an echo service sources bundles from an echo service endpoint, and then only response bundles, such a request is in fact a response, typically elicited by a request whose source was forged; answering it would set two echo services exchanging responses with each other indefinitely.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-4">An echo service <span class="bcp14">MAY</span> also decline to respond to a request as a matter of local policy, for example to enforce access restrictions or rate limits (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>).<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-5">An echo service <span class="bcp14">MUST NOT</span> generate bundles other than response bundles. Other services at the node <span class="bcp14">SHOULD NOT</span> use an echo service endpoint as the source of bundles they originate.<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="primary-block">
+<section id="section-3.3.2">
+          <h4 id="name-primary-block">
+<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-primary-block" class="section-name selfRef">Primary Block</a>
+          </h4>
+<p id="section-3.3.2-1">The primary block of the response bundle <span class="bcp14">MUST</span> be set as follows. Where these rules take a value from the request bundle, it is from the delivery metadata (<a href="#request-delivery" class="auto internal xref">Section 3.2</a>); this is the only respect in which the response bundle depends on the request bundle.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.3.2-2">
+            <dt id="section-3.3.2-2.1">Destination:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.3.2-2.2">
+              <p id="section-3.3.2-2.2.1"><span class="bcp14">MUST</span> be set to the source node ID of the request bundle.<a href="#section-3.3.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.3.2-2.3">Source:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.3.2-2.4">
+              <p id="section-3.3.2-2.4.1">If the request bundle was addressed to a singleton endpoint, <span class="bcp14">MUST</span> be set to that echo service endpoint ID; where a node exposes more than one echo service endpoint (for example, both an <code>ipn</code> and a <code>dtn</code> endpoint), this is the specific endpoint to which the request bundle was addressed. If the request bundle was addressed to a non-singleton endpoint, which cannot serve as the source of a bundle, the source <span class="bcp14">SHOULD</span> be set to the EID of the echo service node's administrative endpoint (<a href="#ops-non-singleton" class="auto internal xref">Section 4.4</a>).<a href="#section-3.3.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.3.2-2.5">Creation Timestamp:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.3.2-2.6">
+              <p id="section-3.3.2-2.6.1">An echo service <span class="bcp14">MUST NOT</span> reuse the request bundle's creation timestamp; the response bundle is assigned its own, as for any bundle the node sources.<a href="#section-3.3.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.3.2-2.7">Lifetime:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.3.2-2.8">
+              <p id="section-3.3.2-2.8.1">The response bundle <span class="bcp14">SHOULD</span> be assigned a lifetime that gives it a reasonable opportunity to reach the originator. Like any bundle the node sources, it is subject to the node's local lifetime policy, which bounds the retention cost of response bundles even when a request bundle asserts a very long lifetime. Within that bound, an echo service <span class="bcp14">MAY</span> set the response bundle's lifetime by reusing the request bundle's lifetime value, or by deriving it from the request bundle's observed transit time (its age on reception). A lifetime derived from observed transit time limits retention, but can underestimate the requirement of a return path slower than the forward path, and so benefits from a generous margin.<a href="#section-3.3.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3.3.2-2.9">Report-To:</dt>
+            <dd style="margin-left: 1.5em" id="section-3.3.2-2.10">
+              <p id="section-3.3.2-2.10.1">If the request bundle requested status reports, an echo service <span class="bcp14">SHOULD</span> set the response bundle's report-to EID to that of the request bundle, so that status reports for both legs of the exchange reach the same observer. Because the request bundle and response bundle are distinct bundles, each report is then attributable to its leg by the source EID of its subject bundle. Otherwise, the report-to EID is set as for any bundle the node sources.<a href="#section-3.3.2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<div id="flags">
+<section id="section-3.3.2.1">
+            <h5 id="name-bundle-processing-control-f">
+<a href="#section-3.3.2.1" class="section-number selfRef">3.3.2.1. </a><a href="#name-bundle-processing-control-f" class="section-name selfRef">Bundle Processing Control Flags</a>
+            </h5>
+<p id="section-3.3.2.1-1">The response bundle's bundle processing control flags are set as for any bundle the node sources, except as follows.<a href="#section-3.3.2.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.3.2.1-2">
+              <dt id="section-3.3.2.1-2.1">"ADU is an administrative record":</dt>
+              <dd style="margin-left: 1.5em" id="section-3.3.2.1-2.2">
+                <p id="section-3.3.2.1-2.2.1"><span class="bcp14">MUST NOT</span> be set. The response is a copy of the request, which is not an administrative record (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>).<a href="#section-3.3.2.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-3.3.2.1-2.3">"Bundle must not be fragmented":</dt>
+              <dd style="margin-left: 1.5em" id="section-3.3.2.1-2.4">
+                <p id="section-3.3.2.1-2.4.1"><span class="bcp14">SHOULD</span> be copied from the request bundle, unless local policy requires otherwise. A client that sets this flag is typically measuring round-trip time or probing the largest bundle a path will carry (<a href="#size-probing" class="auto internal xref">Appendix A.5.2</a>), and either measurement is undermined if the response bundle is fragmented on the return path.<a href="#section-3.3.2.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-3.3.2.1-2.5">"Acknowledgement by application is requested":</dt>
+              <dd style="margin-left: 1.5em" id="section-3.3.2.1-2.6">
+                <p id="section-3.3.2.1-2.6.1"><span class="bcp14">MUST NOT</span> be set. The response does not solicit an application acknowledgement.<a href="#section-3.3.2.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-3.3.2.1-2.7">Status-report-request flags ("Request reporting of bundle reception", "Request reporting of bundle forwarding", "Request reporting of bundle delivery", and "Request reporting of bundle deletion"):</dt>
+              <dd style="margin-left: 1.5em" id="section-3.3.2.1-2.8">
+                <p id="section-3.3.2.1-2.8.1"><span class="bcp14">MAY</span> be set, typically by mirroring the request bundle's flags, so that an observer can follow both legs of the exchange. These take effect together with the report-to EID (see the Report-To field above).<a href="#section-3.3.2.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-3.3.2.1-2.9">"Status time requested in reports":</dt>
+              <dd style="margin-left: 1.5em" id="section-3.3.2.1-2.10">
+                <p id="section-3.3.2.1-2.10.1"><span class="bcp14">MAY</span> be set, typically by mirroring the request bundle's value when the echo service mirrors the status-report-request flags, so that reports for the response bundle carry the time of the reported event whenever the requester asked for that detail.<a href="#section-3.3.2.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="payload-block">
+<section id="section-3.3.3">
+          <h4 id="name-payload-block">
+<a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-payload-block" class="section-name selfRef">Payload Block</a>
+          </h4>
+<p id="section-3.3.3-1">The response, carried in the payload block of the response bundle, <span class="bcp14">MUST</span> be identical, byte for byte, to the request as delivered to the echo service (<a href="#request-delivery" class="auto internal xref">Section 3.2</a>). An echo service <span class="bcp14">MUST NOT</span> alter, truncate, reorder, or append to the request in forming the response. Only the request is guaranteed to survive the round trip, which lets a client verify round-trip integrity by comparing the response with the request it sent.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="extension-blocks">
+<section id="section-3.3.4">
+          <h4 id="name-extension-blocks">
+<a href="#section-3.3.4" class="section-number selfRef">3.3.4. </a><a href="#name-extension-blocks" class="section-name selfRef">Extension Blocks</a>
+          </h4>
+<p id="section-3.3.4-1">The response bundle carries the extension blocks that the node's normal outbound bundle processing and local security policy add to any bundle it sources — for example a Bundle Age Block, Hop Count Block, Previous Node Block, or BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> block — and no others. The extension blocks of the request bundle are processed by the BPA on reception and are not part of what is delivered to the echo service (<a href="#request-delivery" class="auto internal xref">Section 3.2</a>); none of them is carried into the response bundle.<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="client-considerations">
+<section id="section-3.4">
+        <h3 id="name-client-considerations">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-client-considerations" class="section-name selfRef">Client Considerations</a>
+        </h3>
+<p id="section-3.4-1">While this specification focuses primarily on the echo service, certain requirements apply to clients to ensure correct operation. This section defines those normative requirements.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<div id="session-disambiguation">
+<section id="section-3.4.1">
+          <h4 id="name-session-disambiguation">
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-session-disambiguation" class="section-name selfRef">Session Disambiguation</a>
+          </h4>
+<p id="section-3.4.1-1">When multiple clients run concurrently on the same node, each session must be distinguishable so that responses are delivered to the correct client. Multiple concurrent clients on the same node <span class="bcp14">MUST</span> use distinct source endpoint identifiers. Per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span>, each application instance registers with a unique endpoint ID, and the combination of source and destination provides session disambiguation at the bundle layer without requiring any session identifier in the request.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="response-authenticity">
+<section id="section-3.4.2">
+          <h4 id="name-response-authenticity">
+<a href="#section-3.4.2" class="section-number selfRef">3.4.2. </a><a href="#name-response-authenticity" class="section-name selfRef">Response Authenticity</a>
+          </h4>
+<p id="section-3.4.2-1">A response bundle is an independently sourced bundle: its primary block is that of the echo service, and it is not cryptographically bound to the request bundle. A client therefore cannot use a Bundle Integrity Block (BIB) it placed on the request bundle to authenticate the response, because the response bundle is a new bundle and carries no extension block from the request bundle (see <a href="#extension-blocks" class="auto internal xref">Section 3.3.4</a>). A client that requires assurance of a response's origin relies instead on the echo service node's own BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> policy applied to the response bundle, for example a BIB whose security source is the echo service node. Alternatively, because each response is identical to its request, a client can detect modified or spoofed responses by validating each response against state it retained locally when sending the request; see <a href="#payload-format" class="auto internal xref">Appendix A.3</a>.<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="fragmentation">
+<section id="section-3.4.3">
+          <h4 id="name-fragmentation">
+<a href="#section-3.4.3" class="section-number selfRef">3.4.3. </a><a href="#name-fragmentation" class="section-name selfRef">Fragmentation</a>
+          </h4>
+<p id="section-3.4.3-1">Diagnostic clients <span class="bcp14">SHOULD</span> set the "bundle must not be fragmented" flag in request bundles, unless they intend to exercise fragmentation itself. Fragmentation complicates round-trip time measurement and response verification: fragments might take different paths, arrive out of order, or be lost independently. Setting this flag ensures the request bundle either traverses the network intact or is dropped, providing cleaner diagnostic results. An echo service normally copies the flag to the response bundle (<a href="#flags" class="auto internal xref">Section 3.3.2.1</a>), so the same holds for the return path. Setting the flag also makes it possible to probe the largest bundle a path will carry; see <a href="#size-probing" class="auto internal xref">Appendix A.5.2</a>.<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="ops">
+<section id="section-4">
+      <h2 id="name-operational-considerations">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+      </h2>
+<p id="section-4-1">An echo service is a diagnostic tool, and whether a given request should be answered depends on the network in which it operates: the same request can be a legitimate connectivity check in one deployment and reconnaissance or a reflection attempt in another. This document therefore does not enumerate the conditions under which an echo service responds. Instead, it requires that those conditions be under the control of the node operator, and describes the considerations an operator weighs.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="ops-policy">
+<section id="section-4.1">
+        <h3 id="name-enabling-and-restricting-th">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-enabling-and-restricting-th" class="section-name selfRef">Enabling and Restricting the Echo Service</a>
+        </h3>
+<p id="section-4.1-1">An implementation <span class="bcp14">MUST</span> provide a means for the operator to disable the echo service; to limit the responses it sends, both by restricting which requests it answers and by rate (<a href="#rate-limiting" class="auto internal xref">Section 4.2</a>); and, where the echo service propagates status-report settings onto response bundles (<a href="#response-bundle" class="auto internal xref">Section 3.3</a>), to disable that propagation. These means can be provided by the echo service itself, by the BPA through which requests are delivered to it, or by both. A request that the echo service declines to answer is consumed without a response (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>).<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">Policy can be applied at different points and at different granularities, for example:<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-3.1">
+            <p id="section-4.1-3.1.1">by the BPA before delivery, so that unwanted requests never reach the echo service;<a href="#section-4.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-3.2">
+            <p id="section-4.1-3.2.1">by source node ID, or by a set of source EIDs (for example, expressed as EID patterns <span>[<a href="#I-D.ietf-dtn-eid-pattern" class="cite xref">I-D.ietf-dtn-eid-pattern</a>]</span>);<a href="#section-4.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-3.3">
+            <p id="section-4.1-3.3.1">by the presence on the request bundle of a BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> integrity block whose security source the node trusts;<a href="#section-4.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-3.4">
+            <p id="section-4.1-3.4.1">by the BPA before delivery, according to the extension blocks present on the request bundle, for example discarding request bundles that carry blocks of types the node does not expect;<a href="#section-4.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-3.5">
+            <p id="section-4.1-3.5.1">by the node from which the request bundle was received, where the convergence layer or a Previous Node Block identifies it; or<a href="#section-4.1-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-3.6">
+            <p id="section-4.1-3.6.1">by the echo service endpoint at which the request arrived.<a href="#section-4.1-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.1-4">Control over whether the echo service propagates the request bundle's report-to EID and status-report-request flags onto the response bundle matters because propagation lets a requester direct status reports from every node on the return path to an EID of its choosing.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">Whether and how an operator applies these limits is a deployment decision. Answering every delivered request maximizes the diagnostic value of a well-known endpoint and simplifies interoperability testing, but exposes the node to the concerns described in <a href="#security-considerations" class="auto internal xref">Section 5</a>. In a network whose bundle sources are not otherwise authenticated, restricting the echo service to requests whose source is authenticated or otherwise trusted is particularly effective against reflection, which relies on forged sources.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="rate-limiting">
+<section id="section-4.2">
+        <h3 id="name-rate-limiting">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-rate-limiting" class="section-name selfRef">Rate Limiting</a>
+        </h3>
+<p id="section-4.2-1">In this document, rate limiting means declining to respond to some requests, as described in <a href="#ops-policy" class="auto internal xref">Section 4.1</a>, rather than delaying responses: a delayed response consumes storage at the echo service node, and to the client it is indistinguishable from a slow return path. An echo service sends no indication to the requester that a response was withheld, because any such indication would itself be a bundle directed at a possibly spoofed source.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">The limit, and how it is measured, are matters of local policy. A limit applied per source node ID bounds the traffic the echo service can direct at any one destination; a limit applied per previous node bounds the load any one neighbor can impose. Where the BPA, rather than the echo service, discards request bundles before delivery, it deletes them as specified in <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-5.10" class="relref">Section 5.10</a></span>; any deletion status report it generates (for example, with reason code "Traffic pared") is subject to the node's status-reporting policy and raises the same reflection concern.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ops-missing">
+<section id="section-4.3">
+        <h3 id="name-missing-and-multiple-respon">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-missing-and-multiple-respon" class="section-name selfRef">Missing and Multiple Responses</a>
+        </h3>
+<p id="section-4.3-1">Because an echo service sends nothing when it declines a request, a client that receives fewer responses than it sent requests cannot tell, from the responses alone, whether a request or response was lost or expired in transit, whether a request was declined by policy or rate limiting, or whether no echo service is present at all. Loss figures reported by ping clients (<a href="#ping-clients" class="auto internal xref">Appendix A</a>) therefore count unanswered requests, whatever the cause, not only path loss. Status reports can narrow the ambiguity where they are available: a delivery report for a request bundle with no corresponding response indicates that the request reached the echo service node, and that the response was then declined or lost on the return path.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">Conversely, a client can receive more than one response to a single request, in two different ways:<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3-3.1">
+            <p id="section-4.3-3.1.1">Distinct response bundles. Where a request is addressed to a non-singleton endpoint, each member that answers sends its own response in its own response bundle, with its own source and creation timestamp (<a href="#ops-non-singleton" class="auto internal xref">Section 4.4</a>). These are different bundles, so they are not removed by any duplicate suppression on the return path, and their sources identify the responders.<a href="#section-4.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-3.2">
+            <p id="section-4.3-3.2.1">Copies of one response bundle. The network can replicate a response bundle on the return path. The copies share its source node ID and creation timestamp, and the client's BPA might or might not suppress them.<a href="#section-4.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.3-4">Either way, every response is identical to its request, so a client matches responses to requests by content (<a href="#payload-format" class="auto internal xref">Appendix A.3</a>). A ping client typically takes the round-trip time from the first response to arrive, counts the request as answered once, and reports any further responses separately. A client that can see the source node ID and creation timestamp of each response bundle can also tell distinct response bundles apart from copies of the same one.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ops-non-singleton">
+<section id="section-4.4">
+        <h3 id="name-non-singleton-endpoints">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-non-singleton-endpoints" class="section-name selfRef">Non-Singleton Endpoints</a>
+        </h3>
+<p id="section-4.4-1">Every ipn-scheme EID identifies a singleton endpoint (<span>[<a href="#RFC9758" class="cite xref">RFC9758</a>], <a href="https://rfc-editor.org/rfc/rfc9758#section-5.1" class="relref">Section 5.1</a></span>), but other EIDs, such as dtn-scheme EIDs whose demux begins with '~' (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.1.1" class="relref">Section 4.2.5.1.1</a></span>), can identify endpoints with many members. If an echo service is registered in such an endpoint, a single request elicits a response from every member that receives it. Each echo service still emits at most one response, but the number of responses in the network scales with the membership of the endpoint, reintroducing the count amplification that <a href="#reflection-and-amplification" class="auto internal xref">Section 5.1</a> otherwise rules out.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">An echo service <span class="bcp14">SHOULD NOT</span> answer requests addressed to a non-singleton endpoint unless the operator has explicitly configured it to do so. When it does, the response bundle cannot be sourced from the non-singleton EID to which the request bundle was addressed, because the source of a bundle is a node ID (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.2" class="relref">Section 4.2.5.2</a></span>). The echo service <span class="bcp14">SHOULD</span> instead use the EID of its node's administrative endpoint: for example <code>ipn:2.0</code> (<span>[<a href="#RFC9758" class="cite xref">RFC9758</a>], <a href="https://rfc-editor.org/rfc/rfc9758#section-5.7" class="relref">Section 5.7</a></span>) or <code>dtn://node-name/</code> (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.1.1" class="relref">Section 4.2.5.1.1</a></span>), preferably in the same URI scheme as the request's destination where the node has an administrative EID in that scheme. Every node is permanently registered in its administrative endpoint (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.5.2" class="relref">Section 4.2.5.2</a></span>), so this choice needs no additional configuration; where the echo service runs as an application on a BPA that does not let applications source bundles from the administrative endpoint, the BPA can set the source on the echo service's behalf. This choice has three properties that a source shared by the members of the endpoint would lack:<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-3.1">
+            <p id="section-4.4-3.1.1">It contains reflection. Whatever answers a response addresses it to the response's source. Were that source the group's EID, each such answer would be delivered to every member, and two echo groups induced to answer one another, for example by a request to one group forged with the other group's EID as its source, would multiply the traffic by the size of the group at every exchange. A group EID is not normally recognizable as an echo service endpoint, so the rule in <a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a> would not stop this. An administrative endpoint is a single node that does not echo bundles, so any such exchange ends there.<a href="#section-4.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-3.2">
+            <p id="section-4.4-3.2.1">It keeps response bundles distinct. A bundle is identified by its source node ID and creation timestamp. Members that share a source assign creation timestamps independently and, answering the same request at about the same time, can easily assign the same one; duplicate suppression, fragment reassembly, and status reporting on the return path would then conflate response bundles from different members.<a href="#section-4.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-3.3">
+            <p id="section-4.4-3.3.1">It identifies the responder, which nothing else in the response bundle does: the response is identical to the request, and a Previous Node Block identifies only the last hop.<a href="#section-4.4-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-4">A client that addresses a non-singleton endpoint should therefore expect zero, one, or many responses to each request, each sourced from the administrative endpoint of the responding node rather than from the EID the client addressed. Such a client matches responses to requests by content (<a href="#payload-format" class="auto internal xref">Appendix A.3</a>), not by source.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ops-endpoint-config">
+<section id="section-4.5">
+        <h3 id="name-endpoint-configuration">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-endpoint-configuration" class="section-name selfRef">Endpoint Configuration</a>
+        </h3>
+<p id="section-4.5-1">The well-known service number requested in <a href="#iana-considerations" class="auto internal xref">Section 6</a> is a default, not a requirement: as <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>], <a href="https://rfc-editor.org/rfc/rfc9758#section-5.6" class="relref">Section 5.6</a></span> describes, it lets a client sensibly assume where the service is operating unless configuration says otherwise. Existing deployments answer echo requests on a variety of service numbers. Implementations <span class="bcp14">SHOULD</span> therefore allow the operator to configure the endpoints at which the echo service is registered, and ping clients <span class="bcp14">SHOULD</span> allow the target endpoint to be specified in full.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-source-endpoints">
+<section id="section-4.6">
+        <h3 id="name-client-source-endpoints">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-client-source-endpoints" class="section-name selfRef">Client Source Endpoints</a>
+        </h3>
+<p id="section-4.6-1">Ping clients need a distinct source endpoint for each concurrent session (<a href="#session-disambiguation" class="auto internal xref">Section 3.4.1</a>), usually for the lifetime of that session only. This document does not reserve service numbers for such transient use; a BPA that supports transient registrations can allocate them from a Private Use range of <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>. Because responses can arrive long after a session has ended, it is good practice for a BPA not to reassign a recently released source endpoint to a different application promptly, and for a client to discard responses that do not match a request it sent.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-5">
+      <h2 id="name-security-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-5-1">This section discusses security issues relevant to the echo service and potential mitigations.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="reflection-and-amplification">
+<section id="section-5.1">
+        <h3 id="name-reflection-and-amplificatio">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-reflection-and-amplificatio" class="section-name selfRef">Reflection and Amplification</a>
+        </h3>
+<p id="section-5.1-1">Like any echo or reflection service, an echo service can be abused to direct traffic at a victim. Because the source of a bundle is not authenticated by default, an attacker can send requests whose source is set to a victim's endpoint, causing the echo service to send responses to that victim. The echo service thereby launders the attacker's traffic and conceals its origin.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">The volume amplification factor is close to one: each response is identical to its request, and the requirement to emit at most one response per request (see <a href="#response-bundle" class="auto internal xref">Section 3.3</a>) prevents count amplification. The principal risk is therefore reflection toward, and concentration of traffic on, a chosen victim rather than bandwidth amplification. Operators can mitigate this risk by:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-3.1">
+            <p id="section-5.1-3.1.1">Rate-limiting responses, particularly to or from previously unseen endpoints (<a href="#rate-limiting" class="auto internal xref">Section 4.2</a>)<a href="#section-5.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-3.2">
+            <p id="section-5.1-3.2.1">Restricting responses to authenticated or otherwise trusted requesters, for example using Bundle Protocol Security <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>)<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-3.3">
+            <p id="section-5.1-3.3.1">Monitoring for unusual traffic patterns that might indicate abuse<a href="#section-5.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.1-4">An echo service that propagates the request bundle's report-to EID and status-report-request flags onto the response bundle (see <a href="#response-bundle" class="auto internal xref">Section 3.3</a>) extends this reflection surface to the status reports generated for the response bundle; the same mitigations apply, and an operator can also disable that propagation (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>).<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.1-5">Registering an echo service in a non-singleton endpoint reintroduces count amplification, since every member that receives a request answers it; see <a href="#ops-non-singleton" class="auto internal xref">Section 4.4</a>.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">Because an echo service originates nothing but responses (<a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>), a bundle whose source is an echo service endpoint is only ever a response bundle. A receiver can use this to recognize reflected traffic: a bundle from an echo service endpoint that does not correspond to a request the destination application sent, for example one delivered to an application that is not a ping client, indicates that the destination's endpoint has been forged as the source of requests elsewhere. An application or BPA <span class="bcp14">MAY</span> discard such bundles, and a BPA <span class="bcp14">MAY</span> apply rate limits or other policy to bundles whose source is a well-known echo service endpoint. Echo services are themselves the most important such receiver, since answering a response would create a loop between two echo services; <a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a> therefore forbids it.<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<p id="section-5.1-7">Responses to requests addressed to non-singleton endpoints are sourced from the responding node's administrative endpoint instead (<a href="#ops-non-singleton" class="auto internal xref">Section 4.4</a>), so an echo service cannot recognize them by their source. This does not reopen the loop: if such a response reaches another echo service, because the request's source was forged as that echo service's endpoint, the second echo service answers it, but its response is addressed to the administrative endpoint, which does not echo bundles, and the exchange ends there.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">Source EIDs are not authenticated by default, so these checks help discard reflected traffic but do not authenticate genuine responses; see <a href="#response-authenticity" class="auto internal xref">Section 3.4.2</a>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="information-disclosure">
+<section id="section-5.2">
+        <h3 id="name-information-disclosure">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-information-disclosure" class="section-name selfRef">Information Disclosure</a>
+        </h3>
+<p id="section-5.2-1">Echo responses inherently confirm the existence and reachability of the echo service endpoint. Additionally, round-trip time measurements might reveal information about network topology, path characteristics, and store-and-forward delays that could be useful to an adversary mapping a network.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Extension blocks on request bundles can also reveal how nodes on the forward path process bundles, and so which block types they support, how they apply security policy, and potentially which implementations they run (<a href="#block-probing" class="auto internal xref">Appendix A.5.1</a>). Most of this comes from status reports rather than from the echo service: a block that no node processes, marked "Transmit status report if block can't be processed", elicits a report from every node that receives it where status reporting is enabled, sent to a report-to EID of the requester's choosing. The same is true of a bundle sent to any destination, and the exposure is limited in the same way, by disabling status reporting as <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-8" class="relref">Section 8</a></span> recommends by default, or by filtering bundles at the edge of the network. The echo service adds only whether a response returns, and none of the request bundle's extension blocks are carried into the response bundle (<a href="#extension-blocks" class="auto internal xref">Section 3.3.4</a>), so the return path is not exposed. Such probing is also a legitimate diagnostic, which this document does not prohibit.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">In sensitive environments where this information disclosure is a concern, operators can:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-4.1">
+            <p id="section-5.2-4.1.1">Restrict echo service access to authenticated endpoints using BPSec, or discard request bundles carrying unexpected extension blocks before delivery (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.2-4.2">
+            <p id="section-5.2-4.2.1">Disable the echo service entirely on nodes where diagnostics are not required (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>)<a href="#section-5.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.2-4.3">
+            <p id="section-5.2-4.3.1">Deploy the echo service only on designated diagnostic nodes rather than throughout the network<a href="#section-5.2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="resource-exhaustion">
+<section id="section-5.3">
+        <h3 id="name-resource-exhaustion">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-resource-exhaustion" class="section-name selfRef">Resource Exhaustion</a>
+        </h3>
+<p id="section-5.3-1">An attacker could attempt to exhaust echo service resources by sending a large volume of requests or very large requests. Since the echo service must construct and transmit a response for each request, this creates both memory and bandwidth pressure. The following protections are <span class="bcp14">RECOMMENDED</span>:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3-2.1">
+            <p id="section-5.3-2.1.1">Limiting the maximum size of request accepted<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-2.2">
+            <p id="section-5.3-2.2.1">Limiting the rate of requests answered (<a href="#rate-limiting" class="auto internal xref">Section 4.2</a>)<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-2.3">
+            <p id="section-5.3-2.3.1">Monitoring resource usage, and declining requests when under stress<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.3-3">These protections need not be implemented by the echo service itself. Where the echo service runs as an application on a BPA, the BPA can provide them before requests are delivered, for example by limiting the size of bundles it accepts, the rate at which bundles are delivered to the echo service endpoint, or the storage allotted to such bundles. What matters is that the deployment as a whole provides them, under the operator's control (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>).<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-6">
+      <h2 id="name-iana-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="well-known-service-registration">
+<section id="section-6.1">
+        <h3 id="name-well-known-service-registra">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-well-known-service-registra" class="section-name selfRef">Well-Known Service Registration</a>
+        </h3>
+<p id="section-6.1-1">This document requests IANA to register the following entry in the "'ipn' Scheme URI Well-Known Service Numbers for BPv7" registry established by <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span>, assigning the next available value in the Standards Action range (128-255):<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<span id="name-echo-service-registration"></span><div id="iana-echo-service">
+<table class="left" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-echo-service-registration" class="selfRef">Echo Service Registration</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Description</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">TBD1</td>
+              <td class="text-left" rowspan="1" colspan="1">Echo Service</td>
+              <td class="text-left" rowspan="1" colspan="1">(this document)</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-6.1-3">RFC Editor: please replace TBD1 throughout this document with the value assigned by IANA, and remove this note.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-4">Note: Existing implementations do not agree on a service number for echo. Several use 7 by convention, mirroring the well-known UDP port for the Echo Protocol <span>[<a href="#RFC862" class="cite xref">RFC862</a>]</span>, while others use different values (for example, 2047). All of these lie within ranges designated Private Use by <span>[<a href="#RFC9758" class="cite xref">RFC9758</a>]</span> and so cannot be reserved. This document requests a value from the Standards Action range to provide a single registered value; see also <a href="#ops-endpoint-config" class="auto internal xref">Section 4.5</a>.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-7">
+      <h2 id="name-references">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-7.1">
+        <h3 id="name-normative-references">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9171">[RFC9171]</dt>
+        <dd>
+<span class="refAuthor">Burleigh, S.</span>, <span class="refAuthor">Fall, K.</span>, and <span class="refAuthor">E. Birrane, III</span>, <span class="refTitle">"Bundle Protocol Version 7"</span>, <span class="seriesInfo">RFC 9171</span>, <span class="seriesInfo">DOI 10.17487/RFC9171</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9171">https://www.rfc-editor.org/rfc/rfc9171</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9172">[RFC9172]</dt>
+        <dd>
+<span class="refAuthor">Birrane, III, E.</span> and <span class="refAuthor">K. McKeever</span>, <span class="refTitle">"Bundle Protocol Security (BPSec)"</span>, <span class="seriesInfo">RFC 9172</span>, <span class="seriesInfo">DOI 10.17487/RFC9172</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9172">https://www.rfc-editor.org/rfc/rfc9172</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9758">[RFC9758]</dt>
+      <dd>
+<span class="refAuthor">Taylor, R.</span> and <span class="refAuthor">E. Birrane III</span>, <span class="refTitle">"Updates to the 'ipn' URI Scheme"</span>, <span class="seriesInfo">RFC 9758</span>, <span class="seriesInfo">DOI 10.17487/RFC9758</span>, <time datetime="2025-05" class="refDate">May 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9758">https://www.rfc-editor.org/rfc/rfc9758</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-7.2">
+        <h3 id="name-informative-references">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="I-D.ietf-dtn-eid-pattern">[I-D.ietf-dtn-eid-pattern]</dt>
+        <dd>
+<span class="refAuthor">Sipos, B.</span>, <span class="refTitle">"Bundle Protocol Endpoint ID Patterns"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-dtn-eid-pattern-11</span>, <time datetime="2026-09-23" class="refDate">23 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-dtn-eid-pattern-11">https://datatracker.ietf.org/doc/html/draft-ietf-dtn-eid-pattern-11</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC862">[RFC862]</dt>
+        <dd>
+<span class="refAuthor">Postel, J.</span>, <span class="refTitle">"Echo Protocol"</span>, <span class="seriesInfo">STD 20</span>, <span class="seriesInfo">RFC 862</span>, <span class="seriesInfo">DOI 10.17487/RFC862</span>, <time datetime="1983-05" class="refDate">May 1983</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc862">https://www.rfc-editor.org/rfc/rfc862</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8899">[RFC8899]</dt>
+        <dd>
+<span class="refAuthor">Fairhurst, G.</span>, <span class="refAuthor">Jones, T.</span>, <span class="refAuthor">Tüxen, M.</span>, <span class="refAuthor">Rüngeler, I.</span>, and <span class="refAuthor">T. Völker</span>, <span class="refTitle">"Packetization Layer Path MTU Discovery for Datagram Transports"</span>, <span class="seriesInfo">RFC 8899</span>, <span class="seriesInfo">DOI 10.17487/RFC8899</span>, <time datetime="2020-09" class="refDate">September 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8899">https://www.rfc-editor.org/rfc/rfc8899</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9174">[RFC9174]</dt>
+      <dd>
+<span class="refAuthor">Sipos, B.</span>, <span class="refAuthor">Demmer, M.</span>, <span class="refAuthor">Ott, J.</span>, and <span class="refAuthor">S. Perreault</span>, <span class="refTitle">"Delay-Tolerant Networking TCP Convergence-Layer Protocol Version 4"</span>, <span class="seriesInfo">RFC 9174</span>, <span class="seriesInfo">DOI 10.17487/RFC9174</span>, <time datetime="2022-01" class="refDate">January 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9174">https://www.rfc-editor.org/rfc/rfc9174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="ping-clients">
+<section id="appendix-A">
+      <h2 id="name-ping-clients">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-ping-clients" class="section-name selfRef">Ping Clients</a>
+      </h2>
+<p id="appendix-A-1">This appendix provides non-normative guidance for implementing ping clients that use the echo service. While the body of this document defines the echo service behavior, effective ping clients require careful attention to timing, session management, and request design.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="rtt-calculation">
+<section id="appendix-A.1">
+        <h3 id="name-round-trip-time-calculation">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-round-trip-time-calculation" class="section-name selfRef">Round-Trip Time Calculation</a>
+        </h3>
+<p id="appendix-A.1-1">Accurate round-trip time (RTT) measurement is the primary purpose of most ping implementations. Ping clients should calculate RTT using locally stored timestamps rather than timestamps embedded in the request:<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="appendix-A.1-2">
+<pre>
+RTT = response_receive_time - request_sent_times[sequence_number]
+</pre><a href="#appendix-A.1-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A.1-3">This approach offers several advantages:<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.1-4.1">
+            <p id="appendix-A.1-4.1.1">Requires no clock synchronization between nodes<a href="#appendix-A.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-4.2">
+            <p id="appendix-A.1-4.2.1">Works correctly even if the response is corrupted<a href="#appendix-A.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.1-4.3">
+            <p id="appendix-A.1-4.3.1">Avoids serialization overhead in the timing path<a href="#appendix-A.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.1-5">The client should maintain a map from sequence number to sent timestamp. It should populate the map when each request is transmitted and consult it when each response arrives. Entries should be removed after a configurable timeout to prevent unbounded memory growth.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="endpoint-selection">
+<section id="appendix-A.2">
+        <h3 id="name-endpoint-selection">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-endpoint-selection" class="section-name selfRef">Endpoint Selection</a>
+        </h3>
+<p id="appendix-A.2-1">As required by <a href="#session-disambiguation" class="auto internal xref">Section 3.4.1</a>, multiple concurrent clients on the same node use distinct source endpoint identifiers.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-2">For example, if two concurrent ping sessions on node <code>ipn:1.0</code> target <code>ipn:2.TBD1</code>, they should use distinct source endpoints such as <code>ipn:1.1001</code> and <code>ipn:1.1002</code>. The BPA then delivers each response to the correct session based on the destination of its response bundle.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-3">A ping client must not use a well-known echo service endpoint (for example, service number TBD1) as its own source endpoint. Per <a href="#when-a-response-is-sent" class="auto internal xref">Section 3.3.1</a>, services other than the echo service do not source bundles from an echo service endpoint, and an echo service does not answer a request so sourced.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="payload-format">
+<section id="appendix-A.3">
+        <h3 id="name-request-format">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-request-format" class="section-name selfRef">Request Format</a>
+        </h3>
+<p id="appendix-A.3-1">Because each response is identical to its request, the format of requests is entirely at the discretion of the ping client; the echo service neither parses nor interprets them. This document defines no request format.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-2">A client need only place a sequence number in each request, so that it can match each response to the request that produced it. Everything else a client needs is kept in local state, keyed by that sequence number:<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.3-3.1">
+            <p id="appendix-A.3-3.1.1">the time the request was sent, used for the round-trip time calculation of <a href="#rtt-calculation" class="auto internal xref">Appendix A.1</a> (timestamps need not be carried in the request); and<a href="#appendix-A.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.3-3.2">
+            <p id="appendix-A.3-3.2.1">optionally, whatever lets the client confirm that a response is an unmodified echo of its own request — for example, by retaining each request it sent and comparing it against the response.<a href="#appendix-A.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.3-4">Alongside the sequence number, a client should include a value that it does not reuse across sessions and that an off-path attacker cannot predict, such as a random nonce. This lets the client reject responses belonging to an earlier session that used the same source endpoint, and responses forged by an attacker able to guess sequence numbers; see also <a href="#ops-missing" class="auto internal xref">Section 4.3</a>.<a href="#appendix-A.3-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-5">Because the whole request returns unchanged, a client can match and validate responses with no agreed wire format and without relying on Bundle Protocol Security in the network. Authenticating the responder itself is a separate matter, addressed by the echo service node's own BPSec policy on the response bundle (<a href="#response-authenticity" class="auto internal xref">Section 3.4.2</a>).<a href="#appendix-A.3-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-6">A client may also pad the request with additional bytes to reach a chosen request bundle size, for example to probe the largest bundle a path will carry (<a href="#size-probing" class="auto internal xref">Appendix A.5.2</a>).<a href="#appendix-A.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="status-reports">
+<section id="appendix-A.4">
+        <h3 id="name-interpreting-status-reports">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-interpreting-status-reports" class="section-name selfRef">Interpreting Status Reports</a>
+        </h3>
+<p id="appendix-A.4-1">A client may request status reports on its request bundles in the usual way, by setting the relevant bundle processing control flags and a report-to EID. Such reports concern the request bundle's own progress toward the echo service and carry the client's endpoint as the source EID of the subject bundle.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">By setting status-report-request flags and a report-to EID on its request bundle, a ping client asks to observe the exchange end-to-end. An echo service can honor this by propagating those settings onto the response bundle (see <a href="#response-bundle" class="auto internal xref">Section 3.3</a>). Where it does, the designated observer receives status reports for both legs of the exchange and can attribute each report to its leg from the source EID of the report's subject bundle: the client's endpoint for the request bundle, and for the response bundle the echo service endpoint or, where the request was addressed to a non-singleton endpoint, the responding node's administrative endpoint (see <a href="#ops-non-singleton" class="auto internal xref">Section 4.4</a>). Because not every echo service does so, and status reporting is optional in any case, a client should not rely on receiving reports for the return leg. Note also that a client can tie a request-leg report to a specific request, because it knows that bundle's identifier, but cannot in general tie a response-leg report to a specific request: the response bundle's creation timestamp is assigned by the echo service and is not predictable by the client. Round-trip completion for a given request is instead confirmed by the response, which carries the sequence number (see <a href="#rtt-calculation" class="auto internal xref">Appendix A.1</a>).<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-3">Status reports on the request bundle can still aid diagnosis. For example, a "Forwarded" report with no corresponding response suggests the request bundle was lost between an intermediate node and the echo service. Note that status reporting is optional per <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> and many BPA implementations disable it by default; clients should not rely on receiving status reports for correct operation.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="path-probing">
+<section id="appendix-A.5">
+        <h3 id="name-path-probing">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-path-probing" class="section-name selfRef">Path Probing</a>
+        </h3>
+<p id="appendix-A.5-1">A response confirms more than reachability: it shows that the request bundle, as the client constructed it, was carried to the echo service node and that a response bundle came back. By varying how it constructs request bundles, a ping client can use this to test how a path treats particular bundles before an application relies on them. This section describes two such probes: varying the extension blocks on request bundles, and varying their size.<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
+<div id="block-probing">
+<section id="appendix-A.5.1">
+          <h4 id="name-extension-block-probing">
+<a href="#appendix-A.5.1" class="section-number selfRef">A.5.1. </a><a href="#name-extension-block-probing" class="section-name selfRef">Extension Block Probing</a>
+          </h4>
+<p id="appendix-A.5.1-1">A request bundle is an ordinary bundle sourced by the client's node, so the client can attach extension blocks to it, and set their block processing control flags (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.2.4" class="relref">Section 4.2.4</a></span>), as for any bundle it sources. A response then shows that a request bundle carrying those blocks was received, processed, and forwarded by every node on the forward path, and delivered at the echo service node. A client can use this to test, for example, whether the nodes on a path support a new extension block type, or accept a BPSec <span>[<a href="#RFC9172" class="cite xref">RFC9172</a>]</span> block with a particular security context.<a href="#appendix-A.5.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.5.1-2">The block attached can be of a type whose support is under test, or of a type that no node on the path is expected to process, such as one from the private and experimental range (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.3.2" class="relref">Section 4.3.2</a></span>), in which case it serves purely as a signal. Either way, the client sets "Transmit status report if block can't be processed" on the block and a report-to EID that it monitors. Each node that receives the request bundle and cannot process the block then generates a reception status report with reason code "Block unsupported", where status reporting is enabled (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-5.6" class="relref">Section 5.6</a></span>); nodes that can process the block do not. The block's other flags determine what happens next:<a href="#appendix-A.5.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.5.1-3.1">
+              <p id="appendix-A.5.1-3.1.1">With neither "Delete bundle if block can't be processed" nor "Discard block if it can't be processed" set, the request bundle continues with the block intact. Every node on the forward path that cannot process the block reports, so a block that no node processes elicits a report from each node in turn, and the response still confirms the path end to end.<a href="#appendix-A.5.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.5.1-3.2">
+              <p id="appendix-A.5.1-3.2.1">With "Discard block if it can't be processed" set, the first node that cannot process the block reports and removes it, and the request bundle continues without it. The report identifies where support for the block ends, and the response is unaffected.<a href="#appendix-A.5.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.5.1-3.3">
+              <p id="appendix-A.5.1-3.3.1">With "Delete bundle if block can't be processed" set, the first node that cannot process the block reports and deletes the request bundle, so no response returns. A response then shows that every node on the forward path, including the echo service node, processed the block, even where status reporting is disabled.<a href="#appendix-A.5.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="appendix-A.5.1-4">A Hop Count Block (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-4.4.3" class="relref">Section 4.4.3</a></span>) can be used in a similar way to bound how far a request bundle travels: a request bundle whose hop count exceeds its hop limit is deleted for the reason "Hop limit exceeded", and a deletion status report, where requested and generated, identifies the node at which this happened.<a href="#appendix-A.5.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.5.1-5">Such probes test only the forward path. The response bundle is a new bundle that carries none of the request bundle's extension blocks (<a href="#extension-blocks" class="auto internal xref">Section 3.3.4</a>), so the return path is not tested; testing it needs a request sent in the opposite direction. A request can also go unanswered for reasons unrelated to the block under test (<a href="#ops-missing" class="auto internal xref">Section 4.3</a>), including policy at the echo service node that discards request bundles carrying unexpected extension blocks (<a href="#ops-policy" class="auto internal xref">Section 4.1</a>). A missing response is therefore best interpreted against a control: a request bundle without the block under test, sent along the same path at about the same time. A response to the control but not to the probe points to the block; no response to either says nothing about it. Status reports add detail where they are available, but are often disabled (<a href="#status-reports" class="auto internal xref">Appendix A.4</a>).<a href="#appendix-A.5.1-5" class="pilcrow">¶</a></p>
+<p id="appendix-A.5.1-6">Attaching extension blocks to a request bundle depends on the interface that the client's BPA offers to applications. A client that can only submit ADUs for transmission might be unable to do so, so this kind of probing is better suited to diagnostic tools with lower-level access to their BPA.<a href="#appendix-A.5.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="size-probing">
+<section id="appendix-A.5.2">
+          <h4 id="name-bundle-size-probing">
+<a href="#appendix-A.5.2" class="section-number selfRef">A.5.2. </a><a href="#name-bundle-size-probing" class="section-name selfRef">Bundle Size Probing</a>
+          </h4>
+<p id="appendix-A.5.2-1">A client can probe the largest bundle that a path will carry without fragmentation by sending request bundles of increasing size, padding the request (<a href="#payload-format" class="auto internal xref">Appendix A.3</a>), with "Bundle must not be fragmented" set (<a href="#fragmentation" class="auto internal xref">Section 3.4.3</a>). Because a response is identical to its request, the response bundle carries the same data on the return path, so unlike extension block probes, a size probe tests both directions: a response shows that the forward path carried the request bundle, and the return path the response bundle, each unfragmented.<a href="#appendix-A.5.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.5.2-2">This resembles packetization layer path MTU discovery <span>[<a href="#RFC8899" class="cite xref">RFC8899</a>]</span> rather than ICMP-based path MTU discovery. <span>[<a href="#RFC9171" class="cite xref">RFC9171</a>]</span> defines no status report reason code indicating that a bundle was too large to forward unfragmented; a node that cannot forward such a bundle might retain it until a sufficiently long contact, or delete it for another reason, such as "No timely contact with next node on route". A client therefore learns only from success, and a result is subject to the following limits:<a href="#appendix-A.5.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.5.2-3.1">
+              <p id="appendix-A.5.2-3.1.1">The limit is not a fixed property of the path. It depends on convergence-layer limits, such as the TCPCL Transfer MRU <span>[<a href="#RFC9174" class="cite xref">RFC9174</a>]</span>, and on the volume of upcoming contacts and the storage available at each node (<span>[<a href="#RFC9171" class="cite xref">RFC9171</a>], <a href="https://rfc-editor.org/rfc/rfc9171#section-5.8" class="relref">Section 5.8</a></span>), and so can vary over time.<a href="#appendix-A.5.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.5.2-3.2">
+              <p id="appendix-A.5.2-3.2.1">The client controls only the size of the request bundle as it leaves its node. Nodes on the path can add extension blocks, and the response bundle carries the echo service node's own primary block and extension blocks (<a href="#extension-blocks" class="auto internal xref">Section 3.3.4</a>), so it can be larger or smaller than the request bundle. A result is approximate by the size of those blocks.<a href="#appendix-A.5.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="appendix-A.5.2-3.3">
+              <p id="appendix-A.5.2-3.3.1">An echo service node can limit the size of request it accepts (<a href="#resource-exhaustion" class="auto internal xref">Section 5.3</a>), which caps the size that can be probed, and a missing response cannot by itself be distinguished from loss or rate limiting (<a href="#ops-missing" class="auto internal xref">Section 4.3</a>). Interleaving small control requests helps to separate a size limit from other causes, and a delivery status report for a large request bundle, where available, shows that the forward path carried it and so places the limit on the return path.<a href="#appendix-A.5.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="statistics">
+<section id="appendix-A.6">
+        <h3 id="name-statistics">
+<a href="#appendix-A.6" class="section-number selfRef">A.6. </a><a href="#name-statistics" class="section-name selfRef">Statistics</a>
+        </h3>
+<p id="appendix-A.6-1">Ping clients should track and report standard statistics consistent with traditional IP ping:<a href="#appendix-A.6-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.6-2.1">
+            <p id="appendix-A.6-2.1.1">Requests transmitted<a href="#appendix-A.6-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.6-2.2">
+            <p id="appendix-A.6-2.2.1">Responses received<a href="#appendix-A.6-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.6-2.3">
+            <p id="appendix-A.6-2.3.1">Loss percentage<a href="#appendix-A.6-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.6-2.4">
+            <p id="appendix-A.6-2.4.1">RTT minimum, average, maximum, and standard deviation<a href="#appendix-A.6-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.6-3">These statistics provide a quick assessment of network health and help identify routing problems, congestion, or intermittent connectivity.<a href="#appendix-A.6-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.6-4">Example output format following ICMP ping conventions:<a href="#appendix-A.6-4" class="pilcrow">¶</a></p>
+<div class="lang-text sourcecode" id="appendix-A.6-5">
+<pre>
+--- ipn:2.TBD1 ping statistics ---
+5 requests transmitted, 4 received, 20% loss
+rtt min/avg/max/stddev = 1.234/2.567/4.891/1.203 s
+</pre><a href="#appendix-A.6-5" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Rick Taylor</span></div>
+<div dir="auto" class="left"><span class="org">Aalyria Technologies</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:rtaylor@aalyria.com" class="email">rtaylor@aalyria.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
